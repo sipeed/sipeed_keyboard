@@ -13,9 +13,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: get toolchain
+
+    - name: Cache toolchain
+      id: cache
+      uses: actions/cache@v1
+      with: 
+        path: riscv64-elf-x86_64-20210120.tar.gz
+        key : ${{runner.OS}}-riscv64-elf-x86_64-caches-${{ hashFiles('riscv64-elf-x86_64-20210120.tar.gz') }}
+
+    - name: Download toolchain
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
-          wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
+        wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
+
+    - name: Extra toolchain
+      run: |
+          mkdir /opt/riscv64-unknown-elf
           tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
           echo "export PATH=\"$PATH:/opt/riscv64-unknown-elf/bin\""  >> ~/.bashrc 
           source ~/.bashrc
