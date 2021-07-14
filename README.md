@@ -15,5 +15,15 @@ sipeed opensource mechanical keyboard make with BL706
 └── tools // 工具
 ```
 
+## 构建键盘固件
+1. 参考[开发环境搭建指南](http://bouffalolab.gitee.io/bl_mcu_sdk/get_started/index.html)
+
+```sh
+git clone https://github.com/sipeed/sipeed_keyboard.git
+cd sipeed_keyboard/firmware/bl_mcu_sdk
+make build BOARD=sipeed_keyboard APP=gpio_blink
+
+
+```
 ## 交流QQ群
 ![](https://img.hackx.cc/img/qrcode_1626271263202.jpg)

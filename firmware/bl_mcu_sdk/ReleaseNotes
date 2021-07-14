@@ -1,0 +1,128 @@
+bl mcu sdk Release Notes
+----------------------------
+此文件包含 bl mcu sdk 软件开发包的发行说明。
+每个版本的文字说明与发布时的说明保持一致（可能会有错别字的勘误）。
+
+bl mcu sdk Release V1.2.5
+----------------------------
+
+新增功能说明：
+    1. 添加 tensorflow lite 支持
+    2. gpio_set_mode 添加高阻模式
+    3. 添加 keyscan hal 驱动
+    4. 新增 shell 文件系统
+    5. 更新 clock tree 宏定义、更新 board.c 中 pinmux 初始化配置
+    6. es8388 驱动增加双通道支持
+    7. il9341 增加字库，支持大字号显示
+
+修复问题说明：
+    1. 修复 usb msc 中 interface num 为 0
+    2. 修复 uart 和 spi 开关 dma 时未设置 oflag 状态
+    3. 修改 CPU_ID 默认值，当不使用多核时默认为 none
+    4. 修复 adc 浮点输出问题
+    5. 修复 hal pwm 相关宏书写错误
+
+
+bl mcu sdk Release V1.2.4
+----------------------------
+
+新增功能说明：
+    1. 增加部分 math 库函数对 arm dsp api 的兼容，以及优化 math 库效率
+    2. 增加 bl702 adc、camera 中断，重定义 clock tree 的相关宏，
+    3. 删除 GPIO32-GPIO37，更新 GPIO 初始化和读写函数，更新 sf flash 引脚初始化
+    4. 增加 i2s 双通道支持
+    5. 增加 adc、pwm、camera 相关 api
+    6. 增加 camera pingpong buffer case
+    7. cdk 工程更新
+    8. 更新 openocd cfg 文件，适配 openocd 0.11 版本
+
+修复问题说明：
+    1. 对 pwm readme 说明修改
+    2. 修复 hal_usb 中对端点 0 状态的判断逻辑
+    3. 修复 flash 擦除扇区时多擦除扇区的问题
+    4. ble、lvgl、usb、boot2iap、adc 相关 demo 的修改
+
+bl mcu sdk Release V1.2.3
+----------------------------
+
+新增功能说明：
+    1. 增加 case 输出成功和失败的 log 提示
+    2. 更新 cdk 工程，使用 minilibc 替代本地 libc
+    3. 更新 usb api 及其他文档说明
+
+修复问题说明：
+    1. 修改 bl702_flash.ld 文件中 ram 的实际大小
+    2. 修复 main 函数返回时一直重入的问题
+    3. 删除 hal driver 中不需要的内容
+    4. 修复 cdk 工程中编译 camera case 存在的问题
+
+bl mcu sdk Release V1.2.2
+----------------------------
+
+新增功能说明：
+    1. 新增 pwm 驱动 dc motor 和 step motor、dht11、custom hid 、shell demo
+    2. 为所有的 examples 添加 cdk 工程
+    3. 为 cdk 工程添加 openocd 支持
+    4. 更新文档
+    5. 使用 clang-format 格式化代码
+
+修复问题说明：
+    1. 修复 __riscv_float_abi_single 未定义带来的 warning
+    2. 修改 bl702_flash.ld 中 heap 的 分配方式
+    3. 更新 shell 组件，添加使用时删除中间字符的功能
+
+bl mcu sdk Release V1.2.1
+----------------------------
+
+新增功能说明：
+    1. 新增 readme for demo command line build
+    2. 更新 cmake 运行顺序
+    3. 更新 cdk flashloader 和 openocd cfg
+    4. 更新文档
+
+修复问题说明：
+    1. 修复 board.c 中 ADC 的引脚初始化
+    2. 修复 ble 静态库依赖问题
+
+bl mcu sdk Release V1.2.0
+----------------------------
+
+新增功能说明：
+    1. 新增 xz、ble 组件
+    2. usb_stack 中新增 usb video、hid、audio 驱动
+    3. 新增 bl602 driver 和 bl602_iot board
+    4. 为 examples 补全 cdk 工程
+    5. 新增 ble、psram、camera、boot2_iap、emac、usb_video、usb_audio、usb_hid、gpio_int、pwm_it、flash读写、lowpower、pka、systick、timer demo
+    6. 更新 flash Tools
+    7. 更新 cmake 文件
+    8. 更新 mtimer 时钟频率为1M，便于计算
+    9. 文档更新
+
+修复问题说明：
+    1. 修复若干已知问题
+
+
+bl mcu sdk Release V1.1.0
+----------------------------
+
+新增功能说明：
+    1. 新增 lvgl 组件以及基本 demo；
+    2. 新增 freertos 702 port 以及基本 demo；
+    3. 新增 usb 转串口标准驱动 demo，支持博流自定义 DTR、RTS 流控协议；
+    4. 文件系统添加命令行功能；
+    5. hal 层添加强转宏，从而用户可以在程序内修改；
+
+修复问题说明：
+    1. 修正 usb 设备描述符初始化宏，添加协议类代码初始化；
+    2. 修复 hal 层驱动。
+
+
+
+bl mcu sdk Release V1.0.0
+----------------------------
+
+初始化项目。该项目基于 cmake 构建，包含 bl702/bl704/bl706 系列 mcu 底层驱动、基本外设例程、common 驱动以及第三方组件。
+支持 bl706_avb、bl706_iot 开发板的开发工作；
+该项目也支持使用 CDK、eclipse 编译、烧写、调试代码；
+该项目中还包含烧录工具、调试脚本、flash 算法文件以及构建 cmake 需要的一些工具。
+
