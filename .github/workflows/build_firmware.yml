@@ -14,7 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: get toolchain
-      run: wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz && mkdir -p riscv64-elf-20210120 && tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C riscv64-elf-20210120 && cp -rf ~/riscv64-elf-20210120  /usr/bin && echo "export PATH=\"$PATH:/usr/bin/riscv64-elf-20210120/bin\""  >> ~/.bashrc && source ~/.bashrc
+      run: |
+          wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
+          tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
+          echo "export PATH=\"$PATH:/opt/riscv64-unknown-elf/bin\""  >> ~/.bashrc 
+          source ~/.bashrc
     - name: make firmware
       run: cd firmware/bl_mcu_sdk && make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 #     - name: make check
