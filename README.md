@@ -1,6 +1,8 @@
 # sipeed_keyboard
-sipeed opensource mechanical keyboard make with BL706
+![FirmwareCI](https://github.com/sipeed/sipeed_keyboard/actions/workflows/build_firmware.yml/badge.svg) <br>
+sipeed opensource mechanical keyboard make with BL706 <br>
 矽π 开源双模机械键盘
+
 
 
 ## 目录结构
