@@ -33,12 +33,16 @@ jobs:
         wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
         mkdir /opt/riscv64-unknown-elf
         tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
-    - name: make firmware
+        
+    - name: Make firmware
       run: |
         PATH="$PATH:/opt/riscv64-unknown-elf/bin"
         cd firmware/bl_mcu_sdk 
         make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
-#     - name: make check
-#       run: make check
-#     - name: make distcheck
-#       run: make distcheck
+
+    - name: Archive keyboard firmware
+      uses: actions/upload-artifact@v2
+      with:
+        name: sipeed_keyboard_firmware
+        path: |
+          out/examples/keyboard/sipeed_keyboard_68/*
