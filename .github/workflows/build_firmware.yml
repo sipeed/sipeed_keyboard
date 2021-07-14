@@ -3,8 +3,14 @@ name: Keyboard Firmware CI
 on:
   push:
     branches: [ main ]
+    paths: 
+    - '.github/workflows/build_firmware.yml'
+    - 'firmware/*'
   pull_request:
     branches: [ main ]
+    paths:
+    - '.github/workflows/build_firmware.yml'
+    - 'firmware/*'
 
 jobs:
   build:
@@ -31,9 +37,8 @@ jobs:
           mkdir /opt/riscv64-unknown-elf
           tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
     - name: make firmware
-      env:
-        PATH: /bin:/usr/bin:/opt/riscv64-unknown-elf/bin
       run: |
+          PATH="$PATH:/opt/riscv64-unknown-elf/bin"
           cd firmware/bl_mcu_sdk 
           make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 #     - name: make check
