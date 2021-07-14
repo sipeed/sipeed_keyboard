@@ -31,9 +31,9 @@ jobs:
           mkdir /opt/riscv64-unknown-elf
           tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
     - name: make firmware
+      env:
+        PATH: /bin:/usr/bin:/opt/riscv64-unknown-elf/bin
       run: |
-          echo "export PATH=\"$PATH:/opt/riscv64-unknown-elf/bin\""  >> ~/.bashrc 
-          source ~/.bashrc
           cd firmware/bl_mcu_sdk 
           make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 #     - name: make check
