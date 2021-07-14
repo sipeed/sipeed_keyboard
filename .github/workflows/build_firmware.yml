@@ -24,23 +24,20 @@ jobs:
       id: cache
       uses: actions/cache@v1
       with: 
-        path: riscv64-elf-x86_64-20210120.tar.gz
-        key : ${{runner.OS}}-riscv64-elf-x86_64-caches-${{ hashFiles('riscv64-elf-x86_64-20210120.tar.gz') }}
+        path: /opt/riscv64-unknown-elf
+        key : ${{runner.OS}}-riscv64-unknown-elf-caches-${{ hashFiles('bin/riscv64-unknown-elf-gcc') }}
 
     - name: Download toolchain
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
-
-    - name: Extra toolchain
-      run: |
-          mkdir /opt/riscv64-unknown-elf
-          tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
+        mkdir /opt/riscv64-unknown-elf
+        tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
     - name: make firmware
       run: |
-          PATH="$PATH:/opt/riscv64-unknown-elf/bin"
-          cd firmware/bl_mcu_sdk 
-          make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
+        PATH="$PATH:/opt/riscv64-unknown-elf/bin"
+        cd firmware/bl_mcu_sdk 
+        make build SUPPORT_FREERTOS=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 #     - name: make check
 #       run: make check
 #     - name: make distcheck
