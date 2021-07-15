@@ -5,12 +5,12 @@ on:
     branches: [ main ]
     paths: 
     - '.github/workflows/build_firmware.yml'
-    - 'firmware/*'
+    - 'firmware/**'
   pull_request:
     branches: [ main ]
     paths:
     - '.github/workflows/build_firmware.yml'
-    - 'firmware/*'
+    - 'firmware/**'
 
 jobs:
   build:
