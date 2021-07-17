@@ -11,11 +11,10 @@ ENABLE_LANGUAGE(ASM)
 include_directories(${CMAKE_SOURCE_DIR}/common/misc)
 include_directories(${CMAKE_SOURCE_DIR}/bsp/bsp_common/platform)
 
-if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/bsp/board/${BOARD})
-include_directories(${CMAKE_SOURCE_DIR}/bsp/board/${BOARD})
+if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/bsp/board/${CHIP})
+include_directories(${CMAKE_SOURCE_DIR}/bsp/board/${CHIP})
 else()
-message(FATAL_ERROR "${CMAKE_SOURCE_DIR}/bsp/board/${BOARD} is not exist")
+message(FATAL_ERROR "${CMAKE_SOURCE_DIR}/bsp/board/${CHIP} is not exist")
 endif()
 
 search_application(${CMAKE_SOURCE_DIR}/${APP_DIR})
-
