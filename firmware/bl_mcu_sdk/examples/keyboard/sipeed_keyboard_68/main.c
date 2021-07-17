@@ -23,24 +23,20 @@
 #include "hal_uart.h"
 #include <FreeRTOS.h>
 #include "semphr.h"
+#include "bl702.h"
+#include "smk_ble.h"
 
-static uint8_t freertos_heap[4096];
 
+extern uint8_t _heap_start;
+extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
 static HeapRegion_t xHeapRegions[] = {
-    { (uint8_t *)freertos_heap, 0 },
+    { &_heap_start, (unsigned int)&_heap_size },
     { NULL, 0 }, /* Terminates the array. */
     { NULL, 0 }  /* Terminates the array. */
 };
-static StackType_t consumer_stack[512];
-static StaticTask_t consumer_handle;
-static StackType_t producer_stack[512];
-static StaticTask_t producer_handle;
 
 uint8_t sharedBuf[16];
-SemaphoreHandle_t sem_empty = NULL;
-SemaphoreHandle_t sem_full = NULL;
-SemaphoreHandle_t mtx_lock = NULL;
-
+void user_vAssertCalled(void) __attribute__((weak, alias("vAssertCalled")));
 void vAssertCalled(void)
 {
     MSG("vAssertCalled\r\n");
@@ -54,9 +50,13 @@ void vApplicationTickHook(void)
     //MSG("vApplicationTickHook\r\n");
 }
 
-void vApplicationStackOverflowHook(void)
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
     MSG("vApplicationStackOverflowHook\r\n");
+
+    if (pcTaskName) {
+        MSG("Stack name %s\r\n", pcTaskName);
+    }
 
     while (1)
         ;
@@ -114,74 +114,30 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackT
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
-static void consumer_task(void *pvParameters)
+static void ble_init_task(void *pvParameters)
 {
-    MSG("Consumer task enter \r\n");
-    vTaskDelay(1000);
-    MSG("Consumer task start \r\n");
-    MSG("begin to loop %s\n", __FILE__);
-
-    while (1) {
-        if (xSemaphoreTake(sem_full, portMAX_DELAY) == pdTRUE) {
-            xSemaphoreTake(mtx_lock, portMAX_DELAY);
-            MSG("Consumer get:%s\r\n", sharedBuf);
-            xSemaphoreGive(mtx_lock);
-            xSemaphoreGive(sem_empty);
-        } else {
-            MSG("Take sem_full fail\r\n");
-        }
-    }
-
-    vTaskDelete(NULL);
-}
-
-static void producer_task(void *pvParameters)
-{
-    uint8_t buf = 100;
-
-    MSG("Producer task enter \r\n");
-    vTaskDelay(1000);
-    MSG("Producer task start \r\n");
-
-    while (1) {
-        if (xSemaphoreTake(sem_empty, portMAX_DELAY) == pdTRUE) {
-            xSemaphoreTake(mtx_lock, portMAX_DELAY);
-            buf++;
-            sprintf((char *)sharedBuf, "%d", buf);
-            MSG("Producer generates:%s\r\n", sharedBuf);
-            xSemaphoreGive(mtx_lock);
-            xSemaphoreGive(sem_full);
-            vTaskDelay(buf);
-        } else {
-            MSG("Take sem_empty fail\r\n");
-        }
-    }
-
+    ble_init();
     vTaskDelete(NULL);
 }
 
 int main(void)
 {
+    static StackType_t ble_init_stack[1024];
+    static StaticTask_t ble_init_task_h;
+
     bflb_platform_init(0);
 
-    xHeapRegions[0].xSizeInBytes = 4096;
+    MSG("Sipeed Machine Keyboard start...\r\n");
+    HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
+
     vPortDefineHeapRegions(xHeapRegions);
 
-    /* Create semaphore */
-    vSemaphoreCreateBinary(sem_empty);
-    vSemaphoreCreateBinary(sem_full);
-    vSemaphoreCreateBinary(mtx_lock);
+    MSG("[SMK] Device init...\r\n");
+    xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
 
-    if (sem_empty == NULL || sem_full == NULL || mtx_lock == NULL) {
-        MSG("Create sem fail\r\n");
-        BL_CASE_FAIL;
-    }
 
-    MSG("[OS] Starting consumer task...\r\n");
-    xTaskCreateStatic(consumer_task, (char *)"consumer_task", sizeof(consumer_stack) / 4, NULL, 16, consumer_stack, &consumer_handle);
-    MSG("[OS] Starting producer task...\r\n");
-    xTaskCreateStatic(producer_task, (char *)"producer_task", sizeof(producer_stack) / 4, NULL, 15, producer_stack, &producer_handle);
 
+    MSG("[SMK] Start task scheduler...\r\n");
     vTaskStartScheduler();
 
     BL_CASE_SUCCESS;
