@@ -24,13 +24,15 @@
 #include "kys_reg.h"
 #include "bl702_glb.h"
 
+#ifdef BSP_USING_KEYSCAN
+static void KeyScan_IRQ(void);
+#endif
+
 static keyscan_device_t keyscan_device[KEYSCAN_MAX_INDEX] = {
 #ifdef BSP_USING_KEYSCAN
     KEYSCAN_CONFIG
 #endif
 };
-
-static void KeyScan_IRQ(void);
 
 /**
  * @brief
@@ -79,7 +81,9 @@ int keyscan_control(struct device *dev, int cmd, void *args)
 {
     switch (cmd) {
         case DEVICE_CTRL_SET_INT /* constant-expression */:
+#ifdef BSP_USING_KEYSCAN
             Interrupt_Handler_Register(KYS_IRQn, KeyScan_IRQ);
+#endif
             BL_WR_REG(KYS_BASE, KYS_KS_INT_EN, 1);
             NVIC_EnableIRQ(KYS_IRQn);
             break;
@@ -141,14 +145,16 @@ int keyscan_register(enum keyscan_index_type index, const char *name)
     dev->type = DEVICE_CLASS_KEYSCAN;
     dev->handle = NULL;
 
-    return device_register(dev, name, 0);
+    return device_register(dev, name);
 }
 
+#if defined(BSP_USING_KEYSCAN)
 static void KeyScan_IRQ(void)
 {
-    if (keyscan_device[0].parent.callback) {
-        keyscan_device[0].parent.callback(&keyscan_device[0].parent, (void *)(BL_RD_REG(KYS_BASE, KYS_KEYCODE_VALUE)), 0, KEYSCAN_EVENT_TRIG);
+    if (keyscan_device[KEYSCAN_INDEX].parent.callback) {
+        keyscan_device[KEYSCAN_INDEX].parent.callback(&keyscan_device[KEYSCAN_INDEX].parent, (void *)(BL_RD_REG(KYS_BASE, KYS_KEYCODE_VALUE)), 0, KEYSCAN_EVENT_TRIG);
     }
 
     BL_WR_REG(KYS_BASE, KYS_KEYCODE_CLR, 0xf);
 }
+#endif

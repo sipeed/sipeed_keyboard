@@ -24,7 +24,7 @@
 #include "hal_gpio.h"
 #include "hal_clock.h"
 #include "bl702_glb.h"
-#include "pinmux_config.h"
+#include "bl702_config.h"
 
 struct pin_mux_cfg {
     uint8_t pin;
@@ -32,70 +32,134 @@ struct pin_mux_cfg {
 };
 
 static const struct pin_mux_cfg af_pin_table[] = {
+#ifdef CONFIG_GPIO0_FUNC
     { .pin = GPIO_PIN_0,
       .func = CONFIG_GPIO0_FUNC },
+#endif
+#ifdef CONFIG_GPIO1_FUNC
     { .pin = GPIO_PIN_1,
       .func = CONFIG_GPIO1_FUNC },
+#endif
+#ifdef CONFIG_GPIO2_FUNC
     { .pin = GPIO_PIN_2,
       .func = CONFIG_GPIO2_FUNC },
+#endif
+#ifdef CONFIG_GPIO3_FUNC
     { .pin = GPIO_PIN_3,
       .func = CONFIG_GPIO3_FUNC },
+#endif
+#ifdef CONFIG_GPIO4_FUNC
     { .pin = GPIO_PIN_4,
       .func = CONFIG_GPIO4_FUNC },
+#endif
+#ifdef CONFIG_GPIO5_FUNC
     { .pin = GPIO_PIN_5,
       .func = CONFIG_GPIO5_FUNC },
+#endif
+#ifdef CONFIG_GPIO6_FUNC
     { .pin = GPIO_PIN_6,
       .func = CONFIG_GPIO6_FUNC },
+#endif
+#ifdef CONFIG_GPIO7_FUNC
     { .pin = GPIO_PIN_7,
       .func = CONFIG_GPIO7_FUNC },
+#endif
+#ifdef CONFIG_GPIO8_FUNC
     { .pin = GPIO_PIN_8,
       .func = CONFIG_GPIO8_FUNC },
+#endif
+#ifdef CONFIG_GPIO9_FUNC
     { .pin = GPIO_PIN_9,
       .func = CONFIG_GPIO9_FUNC },
+#endif
+#ifdef CONFIG_GPIO10_FUNC
     { .pin = GPIO_PIN_10,
       .func = CONFIG_GPIO10_FUNC },
+#endif
+#ifdef CONFIG_GPIO11_FUNC
     { .pin = GPIO_PIN_11,
       .func = CONFIG_GPIO11_FUNC },
+#endif
+#ifdef CONFIG_GPIO12_FUNC
     { .pin = GPIO_PIN_12,
       .func = CONFIG_GPIO12_FUNC },
+#endif
+#ifdef CONFIG_GPIO13_FUNC
     { .pin = GPIO_PIN_13,
       .func = CONFIG_GPIO13_FUNC },
+#endif
+#ifdef CONFIG_GPIO14_FUNC
     { .pin = GPIO_PIN_14,
       .func = CONFIG_GPIO14_FUNC },
+#endif
+#ifdef CONFIG_GPIO15_FUNC
     { .pin = GPIO_PIN_15,
       .func = CONFIG_GPIO15_FUNC },
+#endif
+#ifdef CONFIG_GPIO16_FUNC
     { .pin = GPIO_PIN_16,
       .func = CONFIG_GPIO16_FUNC },
+#endif
+#ifdef CONFIG_GPIO17_FUNC
     { .pin = GPIO_PIN_17,
       .func = CONFIG_GPIO17_FUNC },
+#endif
+#ifdef CONFIG_GPIO18_FUNC
     { .pin = GPIO_PIN_18,
       .func = CONFIG_GPIO18_FUNC },
+#endif
+#ifdef CONFIG_GPIO19_FUNC
     { .pin = GPIO_PIN_19,
       .func = CONFIG_GPIO19_FUNC },
+#endif
+#ifdef CONFIG_GPIO20_FUNC
     { .pin = GPIO_PIN_20,
       .func = CONFIG_GPIO20_FUNC },
+#endif
+#ifdef CONFIG_GPIO21_FUNC
     { .pin = GPIO_PIN_21,
       .func = CONFIG_GPIO21_FUNC },
+#endif
+#ifdef CONFIG_GPIO22_FUNC
     { .pin = GPIO_PIN_22,
       .func = CONFIG_GPIO22_FUNC },
+#endif
+#ifdef CONFIG_GPIO23_FUNC
     { .pin = GPIO_PIN_23,
       .func = CONFIG_GPIO23_FUNC },
+#endif
+#ifdef CONFIG_GPIO24_FUNC
     { .pin = GPIO_PIN_24,
       .func = CONFIG_GPIO24_FUNC },
+#endif
+#ifdef CONFIG_GPIO25_FUNC
     { .pin = GPIO_PIN_25,
       .func = CONFIG_GPIO25_FUNC },
+#endif
+#ifdef CONFIG_GPIO26_FUNC
     { .pin = GPIO_PIN_26,
       .func = CONFIG_GPIO26_FUNC },
+#endif
+#ifdef CONFIG_GPIO27_FUNC
     { .pin = GPIO_PIN_27,
       .func = CONFIG_GPIO27_FUNC },
+#endif
+#ifdef CONFIG_GPIO28_FUNC
     { .pin = GPIO_PIN_28,
       .func = CONFIG_GPIO28_FUNC },
+#endif
+#ifdef CONFIG_GPIO29_FUNC
     { .pin = GPIO_PIN_29,
       .func = CONFIG_GPIO29_FUNC },
+#endif
+#ifdef CONFIG_GPIO30_FUNC
     { .pin = GPIO_PIN_30,
       .func = CONFIG_GPIO30_FUNC },
+#endif
+#ifdef CONFIG_GPIO31_FUNC
     { .pin = GPIO_PIN_31,
       .func = CONFIG_GPIO31_FUNC },
+#endif
 };
 
 static void board_pin_mux_init(void)
@@ -185,15 +249,24 @@ static void board_clock_init(void)
 void bl_show_info(void)
 {
     MSG("\r\n");
-    MSG("  ____               __  __      _       _       _     \r\n");
-    MSG(" |  _ \\             / _|/ _|    | |     | |     | |    \r\n");
-    MSG(" | |_) | ___  _   _| |_| |_ __ _| | ___ | | __ _| |__  \r\n");
-    MSG(" |  _ < / _ \\| | | |  _|  _/ _` | |/ _ \\| |/ _` | '_ \\ \r\n");
-    MSG(" | |_) | (_) | |_| | | | || (_| | | (_) | | (_| | |_) |\r\n");
-    MSG(" |____/ \\___/ \\__,_|_| |_| \\__,_|_|\\___/|_|\\__,_|_.__/ \r\n");
-    MSG("\r\n");
+    // MSG("  ____               __  __      _       _       _     \r\n");
+    // MSG(" |  _ \\             / _|/ _|    | |     | |     | |    \r\n");
+    // MSG(" | |_) | ___  _   _| |_| |_ __ _| | ___ | | __ _| |__  \r\n");
+    // MSG(" |  _ < / _ \\| | | |  _|  _/ _` | |/ _ \\| |/ _` | '_ \\ \r\n");
+    // MSG(" | |_) | (_) | |_| | | | || (_| | | (_) | | (_| | |_) |\r\n");
+    // MSG(" |____/ \\___/ \\__,_|_| |_| \\__,_|_|\\___/|_|\\__,_|_.__/ \r\n");
+    // MSG("\r\n");
+    // MSG("Build:%s,%s\r\n", __TIME__, __DATE__);
+    // MSG("Copyright (c) 2021 Bouffalolab team\r\n");
+
+    MSG(" _______ _______     _______ _______ _______ _______ _______ _______ _______ _______ \r\n");
+    MSG("|\\     /|\\     /|   |\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\r\n");
+    MSG("| +---+ | +---+ |   | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ |\r\n");
+    MSG("| |   | | |   | |   | |   | | |   | | |   | | |   | | |   | | |   | | |   | | |   | |\r\n");
+    MSG("| |S  | | |P  | |   | |K  | | |E  | | |Y  | | |B  | | |O  | | |A  | | |R  | | |D  | |\r\n");
+    MSG("| +---+ | +---+ |   | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ |\r\n");
+    MSG("|/_____\\|/_____\\|   |/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|\r\n");
     MSG("Build:%s,%s\r\n", __TIME__, __DATE__);
-    MSG("Copyright (c) 2021 Bouffalolab team\r\n");
 
 #if 0
     MSG("root clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_ROOT_CLOCK) / 1000000);
