@@ -36,8 +36,8 @@ int main(void)
 
     bflb_platform_init(0);
 
-    pwm_register(PWM_CH0_INDEX, "dc_motor_ch0", DEVICE_OFLAG_RDWR);
-    pwm_register(PWM_CH1_INDEX, "dc_motor_ch1", DEVICE_OFLAG_RDWR);
+    pwm_register(PWM_CH0_INDEX, "dc_motor_ch0");
+    pwm_register(PWM_CH1_INDEX, "dc_motor_ch1");
 
     struct device *dc_motor_ch0 = device_find("dc_motor_ch0");
     struct device *dc_motor_ch1 = device_find("dc_motor_ch1");
@@ -60,27 +60,27 @@ int main(void)
     while (1) {
         pwm_cfg[1].threshold_low = 0;
         pwm_cfg[1].threshold_high = 0;
-        device_control(dc_motor_ch1, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
+        device_control(dc_motor_ch1, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
         for (pwm_cfg[0].threshold_high = 16; pwm_cfg[0].threshold_high <= 32; pwm_cfg[0].threshold_high++) {
-            device_control(dc_motor_ch0, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
+            device_control(dc_motor_ch0, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
             bflb_platform_delay_ms(1000);
         }
 
         for (pwm_cfg[0].threshold_high = 32; 16 <= pwm_cfg[0].threshold_high && pwm_cfg[0].threshold_high <= 32; pwm_cfg[0].threshold_high--) {
-            device_control(dc_motor_ch0, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
+            device_control(dc_motor_ch0, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
             bflb_platform_delay_ms(1000);
         }
 
         pwm_cfg[0].threshold_low = 0;
         pwm_cfg[0].threshold_high = 0;
-        device_control(dc_motor_ch0, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
+        device_control(dc_motor_ch0, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[0]);
         for (pwm_cfg[1].threshold_high = 16; pwm_cfg[1].threshold_high <= 32; pwm_cfg[1].threshold_high++) {
-            device_control(dc_motor_ch1, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
+            device_control(dc_motor_ch1, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
             bflb_platform_delay_ms(1000);
         }
 
         for (pwm_cfg[1].threshold_high = 32; 16 <= pwm_cfg[1].threshold_high && pwm_cfg[1].threshold_high <= 32; pwm_cfg[1].threshold_high--) {
-            device_control(dc_motor_ch1, DEIVCE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
+            device_control(dc_motor_ch1, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg[1]);
             bflb_platform_delay_ms(1000);
         }
     }

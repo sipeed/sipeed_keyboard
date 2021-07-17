@@ -26,10 +26,6 @@
 #include "bl702_hbn.h"
 #include "system_bl702.h"
 
-#ifdef BOOTROM
-#include "bflb_bootrom.h"
-#endif
-
 #ifdef BFLB_EFLASH_LOADER
 #include "bl702_usb.h"
 void USB_DoNothing_IRQHandler(void)
@@ -59,11 +55,16 @@ void system_bor_init(void)
     HBN_BOR_CFG_Type borCfg = { 1 /* pu_bor */, 0 /* irq_bor_en */, 1 /* bor_vth */, 1 /* bor_sel */ };
     HBN_Set_BOR_Cfg(&borCfg);
 }
+
 void SystemInit(void)
 {
     uint32_t *p;
     uint32_t i = 0;
     uint32_t tmpVal = 0;
+    uint8_t flashCfg = 0;
+    uint8_t psramCfg = 0;
+    uint8_t isInternalFlash = 0;
+    uint8_t isInternalPsram = 0;
 
     /* disable hardware_pullup_pull_down (reg_en_hw_pu_pd = 0) */
     tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
@@ -107,6 +108,28 @@ void SystemInit(void)
         p[i] = 0;
     }
 
+    /* SF io select from efuse value */
+    tmpVal = BL_RD_WORD(0x40007074);
+    flashCfg = ((tmpVal>>26)&7);
+    psramCfg = ((tmpVal>>24)&3);
+    if (flashCfg==1 || flashCfg==2) {
+        isInternalFlash = 1;
+    } else {
+        isInternalFlash = 0;
+    }
+    if (psramCfg == 1) {
+        isInternalPsram = 1;
+    } else {
+        isInternalPsram = 0;
+    }
+    tmpVal = BL_RD_REG(GLB_BASE, GLB_GPIO_USE_PSRAM__IO);
+    if(isInternalFlash==1 && isInternalPsram==0){
+        tmpVal = BL_SET_REG_BITS_VAL(tmpVal, GLB_CFG_GPIO_USE_PSRAM_IO, 0x3f);
+    }else{
+        tmpVal = BL_SET_REG_BITS_VAL(tmpVal, GLB_CFG_GPIO_USE_PSRAM_IO, 0x00);
+    }
+    BL_WR_REG(GLB_BASE, GLB_GPIO_USE_PSRAM__IO, tmpVal);
+
 #ifdef BFLB_EFLASH_LOADER
     Interrupt_Handler_Register(USB_IRQn, USB_DoNothing_IRQHandler);
 #endif
@@ -117,18 +140,11 @@ void SystemInit(void)
     /* init bor for all platform */
     system_bor_init();
 
-#ifdef BOOTROM
-    /*Power up soc 11 power domain,TODO: This should be optional */
-    //AON_Power_On_SOC_11();
-    /* Record LDO18 pu flag before power up. This maybe not neccessary but copy from 606*/
-    //BL_WR_WORD(BFLB_BOOTROM_AP_BOOT_LOG_ADDR,GLB->ldo18io.BF.pu_ldo18io);
-    /* Power up flash power*/
-    //GLB_Power_On_LDO18_IO();
-#endif
-
     /* release 64K OCARAM for appliction */
     GLB_Set_EM_Sel(GLB_EM_0KB);
 }
+
 void System_NVIC_SetPriority(IRQn_Type IRQn, uint32_t PreemptPriority, uint32_t SubPriority)
 {
+    
 }
