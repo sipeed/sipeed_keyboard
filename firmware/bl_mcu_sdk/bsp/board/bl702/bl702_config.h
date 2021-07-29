@@ -41,9 +41,9 @@
 #include "bl706_lp/clock_config.h"
 #include "bl706_lp/pinmux_config.h"
 #else
-#include "bl70x_custom/peripheral_config.h"
-#include "bl70x_custom/clock_config.h"
-#include "bl70x_custom/pinmux_config.h"
+#include "sipeed_keyboard/peripheral_config.h"
+#include "sipeed_keyboard/clock_config.h"
+#include "sipeed_keyboard/pinmux_config.h"
 #endif
 
 #endif
