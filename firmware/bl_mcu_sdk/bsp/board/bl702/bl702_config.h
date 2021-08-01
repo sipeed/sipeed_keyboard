@@ -33,9 +33,9 @@
 #include "bl706_iot/clock_config.h"
 #include "bl706_iot/pinmux_config.h"
 #elif defined(sipeed_keyboard)
-#include "bl706_iot/peripheral_config.h"
-#include "bl706_iot/clock_config.h"
-#include "bl706_iot/pinmux_config.h"
+#include "sipeed_keyboard/peripheral_config.h"
+#include "sipeed_keyboard/clock_config.h"
+#include "sipeed_keyboard/pinmux_config.h"
 #elif defined(bl706_lp)
 #include "bl706_lp/peripheral_config.h"
 #include "bl706_lp/clock_config.h"

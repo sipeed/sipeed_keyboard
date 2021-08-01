@@ -15,7 +15,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "stdint.h"
+#include "sys/cdefs.h"
+#include "usbd_core.h"
 /*------------------------------------------------------------------------------
  *      Definitions  based on usbcdc11.pdf (www.usb.org)
  *----------------------------------------------------------------------------*/

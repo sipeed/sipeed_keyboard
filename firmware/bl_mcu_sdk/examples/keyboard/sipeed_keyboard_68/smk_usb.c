@@ -1,19 +1,55 @@
 #include "smk_usb.h"
-
-#define MSC_IN_EP  0x85
-#define MSC_OUT_EP 0x04
+#include "usbd_core.h"
+#include "usbd_hid.h"
+#include "hal_usb.h"
+#include "smk_hid.h"
 
 #define USBD_VID           0xFFFF
 #define USBD_PID           0xFFFF
 #define USBD_MAX_POWER     100
 #define USBD_LANGID_STRING 1033
 
-#define USB_CONFIG_SIZE (9 + MSC_DESCRIPTOR_LEN)
+#define USB_CONFIG_HID_KEYBOARD_SIZE (9 + HID_DESCRIPTOR_LEN)
 
-USB_DESC_SECTION const uint8_t msc_ram_descriptor[] = {
+
+USB_DESC_SECTION const uint8_t smk_hid_keyboard_descriptor[] = { // single hid keyboard device desc
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0200, 0x01),
-    USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x01, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
-    MSC_DESCRIPTOR_INIT(0x00, MSC_OUT_EP, MSC_IN_EP, 0x02),
+    USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_HID_KEYBOARD_SIZE, 0x01, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
+    // MSC_DESCRIPTOR_INIT(0x00, MSC_OUT_EP, MSC_IN_EP, 0x02),
+        /************** Descriptor of Joystick Mouse interface ****************/
+    /* 09 */
+    0x09,                          /* bLength: Interface Descriptor size */
+    USB_DESCRIPTOR_TYPE_INTERFACE, /* bDescriptorType: Interface descriptor type */
+    0x00,                          /* bInterfaceNumber: Number of Interface */
+    0x00,                          /* bAlternateSetting: Alternate setting */
+    0x01,                          /* bNumEndpoints */
+    0x03,                          /* bInterfaceClass: HID */
+    0x01,                          /* bInterfaceSubClass : 1=BOOT, 0=no boot */
+    0x01,                          /* nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse */
+    0,                             /* iInterface: Index of string descriptor */
+    /******************** Descriptor of Joystick Mouse HID ********************/
+    /* 18 */
+    0x09,                    /* bLength: HID Descriptor size */
+    HID_DESCRIPTOR_TYPE_HID, /* bDescriptorType: HID */
+    0x11,                    /* bcdHID: HID Class Spec release number */
+    0x01,
+    0x00,                          /* bCountryCode: Hardware target country */
+    0x01,                          /* bNumDescriptors: Number of HID class descriptors to follow */
+    0x22,                          /* bDescriptorType */
+    HID_KEYBOARD_REPORT_DESC_SIZE, /* wItemLength: Total length of Report descriptor */
+    0x00,
+    /******************** Descriptor of Mouse endpoint ********************/
+    /* 27 */
+    0x07,                         /* bLength: Endpoint Descriptor size */
+    USB_DESCRIPTOR_TYPE_ENDPOINT, /* bDescriptorType: */
+    HID_INT_EP,                   /* bEndpointAddress: Endpoint Address (IN) */
+    0x03,                         /* bmAttributes: Interrupt endpoint */
+    HID_INT_EP_SIZE,              /* wMaxPacketSize: 4 Byte max */
+    0x00,
+    HID_INT_EP_INTERVAL, /* bInterval: Polling Interval */
+
+
+    
     ///////////////////////////////////////
     /// string0 descriptor
     ///////////////////////////////////////
@@ -21,38 +57,34 @@ USB_DESC_SECTION const uint8_t msc_ram_descriptor[] = {
     ///////////////////////////////////////
     /// string1 descriptor
     ///////////////////////////////////////
-    0x12,                       /* bLength */
+    0x0e,                       /* bLength */
     USB_DESCRIPTOR_TYPE_STRING, /* bDescriptorType */
-    'B', 0x00,                  /* wcChar0 */
-    'o', 0x00,                  /* wcChar1 */
-    'u', 0x00,                  /* wcChar2 */
-    'f', 0x00,                  /* wcChar3 */
-    'f', 0x00,                  /* wcChar4 */
-    'a', 0x00,                  /* wcChar5 */
-    'l', 0x00,                  /* wcChar6 */
-    'o', 0x00,                  /* wcChar7 */
+    'S', 0x00,                  /* wcChar0 */
+    'i', 0x00,                  /* wcChar1 */
+    'p', 0x00,                  /* wcChar2 */
+    'e', 0x00,                  /* wcChar3 */
+    'e', 0x00,                  /* wcChar4 */
+    'd', 0x00,                  /* wcChar5 */
     ///////////////////////////////////////
     /// string2 descriptor
     ///////////////////////////////////////
-    0x24,                       /* bLength */
+    0x20,                       /* bLength */
     USB_DESCRIPTOR_TYPE_STRING, /* bDescriptorType */
-    'B', 0x00,                  /* wcChar0 */
-    'o', 0x00,                  /* wcChar1 */
-    'u', 0x00,                  /* wcChar2 */
-    'f', 0x00,                  /* wcChar3 */
-    'f', 0x00,                  /* wcChar4 */
-    'a', 0x00,                  /* wcChar5 */
-    'l', 0x00,                  /* wcChar6 */
-    'o', 0x00,                  /* wcChar7 */
-    ' ', 0x00,                  /* wcChar8 */
-    'M', 0x00,                  /* wcChar9 */
-    'S', 0x00,                  /* wcChar10 */
-    'C', 0x00,                  /* wcChar11 */
-    ' ', 0x00,                  /* wcChar12 */
-    'D', 0x00,                  /* wcChar13 */
-    'E', 0x00,                  /* wcChar14 */
-    'M', 0x00,                  /* wcChar15 */
-    'O', 0x00,                  /* wcChar16 */
+    'S', 0x00,                  /* wcChar0 */
+    'i', 0x00,                  /* wcChar1 */
+    'p', 0x00,                  /* wcChar2 */
+    'e', 0x00,                  /* wcChar3 */
+    'e', 0x00,                  /* wcChar4 */
+    'd', 0x00,                  /* wcChar5 */
+    ' ', 0x00,                  /* wcChar6 */
+    'K', 0x00,                  /* wcChar7 */
+    'e', 0x00,                  /* wcChar8 */
+    'y', 0x00,                  /* wcChar9 */
+    'b', 0x00,                  /* wcChar10 */
+    'o', 0x00,                  /* wcChar11 */
+    'a', 0x00,                  /* wcChar12 */
+    'r', 0x00,                  /* wcChar13 */
+    'd', 0x00,                  /* wcChar14 */
     ///////////////////////////////////////
     /// string3 descriptor
     ///////////////////////////////////////
@@ -85,46 +117,23 @@ USB_DESC_SECTION const uint8_t msc_ram_descriptor[] = {
     0x00
 };
 
-#define BLOCK_SIZE  512
-#define BLOCK_COUNT 16
-
-typedef struct
-{
-    uint8_t BlockSpace[BLOCK_SIZE];
-} BLOCK_TYPE;
-
-// The CDC recv buffer size should equal to the out endpoint size
-// or we will need a timeout to flush the recv buffer
-BLOCK_TYPE mass_block[BLOCK_COUNT] __attribute__((section(".system_ram"))); //FIXME
-
-void usbd_msc_get_cap(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
-{
-    *block_num = BLOCK_COUNT;
-    *block_size = BLOCK_SIZE;
-}
-int usbd_msc_sector_read(uint32_t sector, uint8_t *buffer, uint32_t length)
-{
-    memcpy(buffer, mass_block[sector].BlockSpace, length);
-    return 0;
-}
-
-int usbd_msc_sector_write(uint32_t sector, uint8_t *buffer, uint32_t length)
-{
-    memcpy(mass_block[sector].BlockSpace, buffer, length);
-    return 0;
-}
-
 struct device *usb_fs;
 
 extern struct device *usb_dc_init(void);
 
 void usb_init(){ //task init
-    usbd_desc_register(msc_ram_descriptor);
-    usbd_msc_class_init(MSC_OUT_EP, MSC_IN_EP);
+    usbd_desc_register(smk_hid_keyboard_descriptor);
+    smk_hid_usb_init();
 
     usb_fs = usb_dc_init();
 
     if (usb_fs) {
-        device_control(usb_fs, DEVICE_CTRL_SET_INT, (void *)(USB_EP4_DATA_OUT_IT | USB_EP5_DATA_IN_IT));
+        device_control(usb_fs, DEVICE_CTRL_SET_INT, (void *)(USB_EP1_DATA_IN_IT | USB_EP4_DATA_OUT_IT | USB_EP5_DATA_IN_IT));
+    }
+
+    while (!usb_device_is_configured()) {
+    }
+
+    while (1) {
     }
 }
