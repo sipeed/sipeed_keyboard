@@ -26,7 +26,8 @@
 #include "bl702.h"
 #include "smk_ble.h"
 #include "smk_usb.h"
-
+#include "smk_shell.h"
+#include "smk_command.h"
 
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
@@ -135,7 +136,7 @@ int main(void)
     static StaticTask_t usb_init_task_h;
 
     bflb_platform_init(0);
-
+    shell_init();
     MSG("Sipeed Machine Keyboard start...\r\n");
     HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
 
