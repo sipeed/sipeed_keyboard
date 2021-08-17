@@ -50,10 +50,10 @@
 #define ROOT_CLOCK_SOURCE_AUPLL_24000000_HZ 13
 
 enum system_clock_type {
-    SYSTEM_CLOCK_ROOT_CLOCK = 0,
-    SYSTEM_CLOCK_FCLK,
-    SYSTEM_CLOCK_BCLK,
-    SYSTEM_CLOCK_XCLK,
+    SYSTEM_CLOCK_ROOT_CLOCK = 0, /* clock source before fclk_div*/
+    SYSTEM_CLOCK_FCLK,           /* clock source after fclk_div*/
+    SYSTEM_CLOCK_BCLK,           /* clock source after bclk_div*/
+    SYSTEM_CLOCK_XCLK,           /* xtal clock*/
     SYSTEM_CLOCK_32K_CLK,
     SYSTEM_CLOCK_AUPLL,
 };
@@ -66,9 +66,12 @@ enum peripheral_clock_type {
     PERIPHERAL_CLOCK_I2S,
     PERIPHERAL_CLOCK_PWM,
     PERIPHERAL_CLOCK_CAM,
+    PERIPHERAL_CLOCK_TIMER0,
+    PERIPHERAL_CLOCK_TIMER1,
 };
 
 void system_clock_init(void);
+void system_mtimer_clock_init(void);
 void peripheral_clock_init(void);
 uint32_t system_clock_get(enum system_clock_type type);
 uint32_t peripheral_clock_get(enum peripheral_clock_type type);

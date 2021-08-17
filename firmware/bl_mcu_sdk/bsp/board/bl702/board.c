@@ -165,9 +165,17 @@ static const struct pin_mux_cfg af_pin_table[] = {
 static void board_pin_mux_init(void)
 {
     GLB_GPIO_Cfg_Type gpio_cfg;
-
+    uint32_t tmpVal;
     gpio_cfg.drive = 0;
     gpio_cfg.smtCtrl = 1;
+
+    /*disable wakeup irq and aon ie*/
+    tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
+    tmpVal = BL_SET_REG_BITS_VAL(tmpVal, HBN_PIN_WAKEUP_MASK, 0x1f);
+    tmpVal = BL_SET_REG_BITS_VAL(tmpVal, HBN_REG_AON_PAD_IE_SMT, 0);
+    tmpVal = BL_CLR_REG_BIT(tmpVal, HBN_REG_EN_HW_PU_PD);
+    tmpVal = BL_SET_REG_BITS_VAL(tmpVal, HBN_PIN_WAKEUP_MODE, HBN_GPIO_INT_TRIGGER_ASYNC_FALLING_EDGE);
+    BL_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
 
     for (int i = 0; i < sizeof(af_pin_table) / sizeof(af_pin_table[0]); i++) {
         gpio_cfg.gpioMode = GPIO_MODE_AF;
@@ -178,9 +186,56 @@ static void board_pin_mux_init(void)
         /*if reset state*/
         if (af_pin_table[i].func == GPIO_FUN_UNUSED) {
             continue;
+        } else if (af_pin_table[i].func == GPIO_FUN_WAKEUP) {
+            /*if gpio wakeup func*/
+            if (af_pin_table[i].pin == GPIO_PIN_9) {
+                HBN_Clear_IRQ(HBN_INT_GPIO9);
+
+                /*enable gpio9 wakeup and irq unmask*/
+                tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
+
+                tmpVal &= ~(1 << 3); //gpio9 unmask
+                tmpVal |= (1 << 8);  //gpio9 ie smt
+                BL_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
+            } else if (af_pin_table[i].pin == GPIO_PIN_10) {
+                HBN_Clear_IRQ(HBN_INT_GPIO10);
+
+                /*enable gpio10 wakeup and irq unmask*/
+                tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
+                tmpVal &= ~(1 << 4); //gpio10 unmask
+                tmpVal |= (1 << 9);  //gpio10 ie smt
+                BL_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
+            } else if (af_pin_table[i].pin == GPIO_PIN_11) {
+                HBN_Clear_IRQ(HBN_INT_GPIO11);
+
+                /*enable gpio11 wakeup and irq unmask*/
+                tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
+                tmpVal &= ~(1 << 5); //gpio11 unmask
+                tmpVal |= (1 << 10); //gpio11 ie smt
+                BL_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
+            } else if (af_pin_table[i].pin == GPIO_PIN_12) {
+                HBN_Clear_IRQ(HBN_INT_GPIO12);
+
+                /*enable gpio12 wakeup and irq unmask*/
+                tmpVal = BL_RD_REG(HBN_BASE, HBN_IRQ_MODE);
+                tmpVal &= ~(1 << 6); //gpio12 unmask
+                tmpVal |= (1 << 11); //gpio12 ie smt
+                BL_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
+            }
+            continue;
         } else if (af_pin_table[i].func == GPIO_FUN_PWM) {
             /*if pwm func*/
             gpio_cfg.pullType = GPIO_PULL_DOWN;
+        } else if (af_pin_table[i].func == GPIO_FUN_QDEC) {
+            /* if qdec a/b */
+            gpio_cfg.pullType = GPIO_PULL_NONE;
+            gpio_cfg.gpioMode = GPIO_MODE_INPUT;
+            gpio_cfg.gpioFun = GPIO_FUN_QDEC;
+        } else if (af_pin_table[i].func == GPIO_FUN_QDEC_LED) {
+            /* if qdec led */
+            gpio_cfg.pullType = GPIO_PULL_NONE;
+            gpio_cfg.gpioMode = GPIO_MODE_OUTPUT;
+            gpio_cfg.gpioFun = GPIO_FUN_QDEC;
         } else if ((af_pin_table[i].func == GPIO_FUN_USB) || (af_pin_table[i].func == GPIO_FUN_DAC) || (af_pin_table[i].func == GPIO_FUN_ADC)) {
             /*if analog func , for usb、adc、dac*/
             gpio_cfg.gpioFun = GPIO_FUN_ANALOG;
@@ -225,15 +280,15 @@ static void board_pin_mux_init(void)
             gpio_cfg.pullType = GPIO_PULL_NONE;
         } else if (af_pin_table[i].func == GPIO_FUN_GPIO_OUTPUT_UP) {
             gpio_cfg.gpioFun = GPIO_FUN_GPIO;
-            gpio_cfg.gpioMode = GPIO_MODE_INPUT;
+            gpio_cfg.gpioMode = GPIO_MODE_OUTPUT;
             gpio_cfg.pullType = GPIO_PULL_UP;
         } else if (af_pin_table[i].func == GPIO_FUN_GPIO_OUTPUT_DOWN) {
             gpio_cfg.gpioFun = GPIO_FUN_GPIO;
-            gpio_cfg.gpioMode = GPIO_MODE_INPUT;
+            gpio_cfg.gpioMode = GPIO_MODE_OUTPUT;
             gpio_cfg.pullType = GPIO_PULL_DOWN;
         } else if (af_pin_table[i].func == GPIO_FUN_GPIO_OUTPUT_NONE) {
             gpio_cfg.gpioFun = GPIO_FUN_GPIO;
-            gpio_cfg.gpioMode = GPIO_MODE_INPUT;
+            gpio_cfg.gpioMode = GPIO_MODE_OUTPUT;
             gpio_cfg.pullType = GPIO_PULL_NONE;
         }
         GLB_GPIO_Init(&gpio_cfg);
@@ -249,28 +304,19 @@ static void board_clock_init(void)
 void bl_show_info(void)
 {
     MSG("\r\n");
-    // MSG("  ____               __  __      _       _       _     \r\n");
-    // MSG(" |  _ \\             / _|/ _|    | |     | |     | |    \r\n");
-    // MSG(" | |_) | ___  _   _| |_| |_ __ _| | ___ | | __ _| |__  \r\n");
-    // MSG(" |  _ < / _ \\| | | |  _|  _/ _` | |/ _ \\| |/ _` | '_ \\ \r\n");
-    // MSG(" | |_) | (_) | |_| | | | || (_| | | (_) | | (_| | |_) |\r\n");
-    // MSG(" |____/ \\___/ \\__,_|_| |_| \\__,_|_|\\___/|_|\\__,_|_.__/ \r\n");
-    // MSG("\r\n");
-    // MSG("Build:%s,%s\r\n", __TIME__, __DATE__);
-    // MSG("Copyright (c) 2021 Bouffalolab team\r\n");
-
-    MSG(" _______ _______     _______ _______ _______ _______ _______ _______ _______ _______ \r\n");
-    MSG("|\\     /|\\     /|   |\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\\     /|\r\n");
-    MSG("| +---+ | +---+ |   | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ |\r\n");
-    MSG("| |   | | |   | |   | |   | | |   | | |   | | |   | | |   | | |   | | |   | | |   | |\r\n");
-    MSG("| |S  | | |P  | |   | |K  | | |E  | | |Y  | | |B  | | |O  | | |A  | | |R  | | |D  | |\r\n");
-    MSG("| +---+ | +---+ |   | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ | +---+ |\r\n");
-    MSG("|/_____\\|/_____\\|   |/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|/_____\\|\r\n");
+    MSG("  ____               __  __      _       _       _     \r\n");
+    MSG(" |  _ \\             / _|/ _|    | |     | |     | |    \r\n");
+    MSG(" | |_) | ___  _   _| |_| |_ __ _| | ___ | | __ _| |__  \r\n");
+    MSG(" |  _ < / _ \\| | | |  _|  _/ _` | |/ _ \\| |/ _` | '_ \\ \r\n");
+    MSG(" | |_) | (_) | |_| | | | || (_| | | (_) | | (_| | |_) |\r\n");
+    MSG(" |____/ \\___/ \\__,_|_| |_| \\__,_|_|\\___/|_|\\__,_|_.__/ \r\n");
+    MSG("\r\n");
     MSG("Build:%s,%s\r\n", __TIME__, __DATE__);
+    MSG("Copyright (c) 2021 Bouffalolab team\r\n");
 
 #if 0
-    MSG("root clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_ROOT_CLOCK) / 1000000);
-    MSG("fclk clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_FCLK) / 1000000);
+    MSG("root clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_ROOT_CLOCK) / 1000000);/*root clock before f_div*/
+    MSG("fclk clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_FCLK) / 1000000);/*after f_div,this is system core clock*/
     MSG("bclk clock:%dM\r\n", system_clock_get(SYSTEM_CLOCK_BCLK) / 1000000);
 
     MSG("uart clock:%dM\r\n", peripheral_clock_get(PERIPHERAL_CLOCK_UART) / 1000000);
@@ -283,4 +329,18 @@ void board_init(void)
 {
     board_clock_init();
     board_pin_mux_init();
+}
+
+int bflb_get_board_config(uint8_t func, uint8_t *pinlist)
+{
+    uint16_t i = 0;
+    int len = 0;
+
+    for (i = 0; i < sizeof(af_pin_table) / sizeof(struct pin_mux_cfg); i++) {
+        if (af_pin_table[i].func == func) {
+            pinlist[len] = af_pin_table[i].pin;
+            len++;
+        }
+    }
+    return len;
 }

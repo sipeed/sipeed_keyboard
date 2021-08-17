@@ -38,7 +38,7 @@ jobs:
       run: |
         PATH="$PATH:/opt/riscv64-unknown-elf/bin"
         cd firmware/bl_mcu_sdk 
-        make build SUPPORT_FREERTOS=y SUPPORT_BLE=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
+        make build BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 
     - name: Archive keyboard firmware
       uses: actions/upload-artifact@v2

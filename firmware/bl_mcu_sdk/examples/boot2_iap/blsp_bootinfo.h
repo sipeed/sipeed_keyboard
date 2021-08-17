@@ -38,18 +38,10 @@
 
 #include "stdint.h"
 #include "blsp_port.h"
+#include "hal_flash.h"
+#include "hal_boot2.h"
 
-/** @addtogroup  BL606_BLSP_Boot2
- *  @{
- */
 
-/** @addtogroup  BLSP_BOOTINFO
- *  @{
- */
-
-/** @defgroup  BLSP_BOOTINFO_Public_Macros
- *  @{
- */
 #define BFLB_BOOT2_CPU0_MAGIC        "BFNP"
 #define BFLB_BOOT2_CPU1_MAGIC        "BFAP"
 #define BFLB_BOOT2_FLASH_CFG_MAGIC   "FCFG"
@@ -60,13 +52,14 @@
 #define BFLB_BOOT2_READBUF_SIZE         4 * 1024
 #define BFLB_FW_IMG_OFFSET_AFTER_HEADER 4 * 1024
 
+
 /* Image owner type */
 #define BFLB_BOOT2_CPU_0   0
 #define BFLB_BOOT2_CPU_1   1
-#define BFLB_BOOT2_CPU_MAX 2
+#define BFLB_BOOT2_CPU_MAX HAL_EFUSE_CPU_MAX
 
 /* Public key hash size */
-#define BFLB_BOOT2_PK_HASH_SIZE 256 / 8
+#define BFLB_BOOT2_PK_HASH_SIZE HAL_EFUSE_PK_HASH_SIZE
 #define BFLB_BOOT2_HASH_SIZE    256 / 8
 /* Public key type */
 #define BFLB_BOOT2_ECC_KEYXSIZE 256 / 8
@@ -77,11 +70,8 @@
 #define BFLB_PSM_ACTIVE 0
 #define BFLB_PSM_HBN    1
 
-/*@} end of group BLSP_BOOTINFO_Public_Macros */
 
-/** @defgroup  BLSP_BOOTINFO_Public_Types
- *  @{
- */
+
 typedef enum {
     BFLB_BOOT2_SUCCESS = 0x00,
 
@@ -136,47 +126,10 @@ typedef enum {
 
 typedef struct
 {
-    uint8_t encrypted[BFLB_BOOT2_CPU_MAX];
-    uint8_t sign[BFLB_BOOT2_CPU_MAX];
-    uint8_t hbn_check_sign;
-    uint8_t rsvd[3];
-    uint8_t chip_id[8];
-    uint8_t pk_hash_cpu0[BFLB_BOOT2_PK_HASH_SIZE];
-    uint8_t pk_hash_cpu1[BFLB_BOOT2_PK_HASH_SIZE];
-} boot_efuse_hw_config;
-
-typedef struct
-{
-    uint32_t magicCode; /*'FCFG'*/
-    SPI_Flash_Cfg_Type cfg;
-    uint32_t crc32;
-} boot_flash_config;
-
-typedef struct
-{
-    uint8_t xtal_type;
-    uint8_t pll_clk;
-    uint8_t hclk_div;
-    uint8_t bclk_div;
-
-    uint8_t flash_clk_type;
-    uint8_t flash_clk_div;
-    uint8_t rsvd[2];
-} boot_sys_clk_config;
-
-typedef struct
-{
-    uint32_t magicCode; /*'PCFG'*/
-    boot_sys_clk_config cfg;
-    uint32_t crc32;
-} boot_clk_config;
-
-typedef struct
-{
     uint32_t magicCode; /*'BFXP'*/
     uint32_t rivison;
-    boot_flash_config flash_cfg;
-    boot_clk_config clk_cfg;
+    hal_flash_config flash_cfg;
+    hal_pll_config clk_cfg;
     __PACKED_UNION
     {
         __PACKED_STRUCT
@@ -291,7 +244,7 @@ typedef struct
     uint8_t signature[BFLB_BOOT2_SIGN_MAXSIZE];  //signature in boot header
     uint8_t signature2[BFLB_BOOT2_SIGN_MAXSIZE]; //signature in boot header
 
-} boot_image_config;
+} boot2_image_config;
 
 typedef struct
 {
@@ -302,29 +255,15 @@ typedef struct
 
 typedef void (*pentry_t)(void);
 
-extern boot_cpu_config g_boot_cpu_cfg[2];
-extern boot_image_config g_boot_img_cfg[2];
-extern boot_efuse_hw_config g_efuse_cfg;
+extern boot2_image_config g_boot_img_cfg[2];
+extern boot2_efuse_hw_config g_efuse_cfg;
 extern uint8_t g_ps_mode;
 extern uint8_t g_cpu_count;
 extern uint8_t g_boot2_read_buf[BFLB_BOOT2_READBUF_SIZE];
 
-/*@} end of group BLSP_BOOTINFO_Public_Types */
 
-/** @defgroup  BLSP_BOOTINFO_Public_Constants
- *  @{
- */
-
-/*@} end of group BLSP_BOOTINFO_Public_Constants */
-
-/** @defgroup  BLSP_BOOTINFO_Public_Functions
- *  @{
- */
-
-/*@} end of group BLSP_BOOTINFO_Public_Functions */
-
-/*@} end of group BLSP_BOOTINFO */
-
-/*@} end of group BL606_BLSP_Boot2 */
 
 #endif /* __BLSP_BOOTINFO_H__ */
+
+
+

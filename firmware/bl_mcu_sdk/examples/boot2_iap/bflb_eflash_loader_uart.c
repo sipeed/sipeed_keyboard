@@ -37,12 +37,11 @@
 #include "bflb_eflash_loader_cmds.h"
 #include "bflb_eflash_loader.h"
 #include "bflb_platform.h"
+#include "blsp_port.h"
 #include "partition.h"
 #include "hal_uart.h"
 #include "drv_device.h"
 
-#define LOCAL_FILE_NUM (0x0003)
-#define UART_CLOCK     (40000000)
 
 static uint32_t g_detected_baudrate;
 
@@ -58,48 +57,77 @@ enum uart_index_type board_get_debug_uart_index(void)
 {
     return 1;
 }
-
+void bflb_dump_data(uint8_t * buf, uint32_t size)
+{
+    for(int i = 0; i <size; i++)
+    {
+        if(i % 16 == 0)
+            MSG("\r\n");
+        MSG("%02x ",buf[i]);
+    }
+    MSG("\r\n");
+}
 static void ATTR_TCM_SECTION uart0_irq_callback(struct device *dev, void *args, uint32_t size, uint32_t state)
 {
     uint8_t *buf = (uint8_t *)g_eflash_loader_readbuf[g_rx_buf_index];
-
     if (state == UART_EVENT_RX_FIFO) {
         //g_rx_buf_len += device_read(download_uart,0,buf,BFLB_EFLASH_LOADER_READBUF_SIZE-g_rx_buf_len);
-        BL702_MemCpy(buf + g_rx_buf_len, args, size);
+        arch_memcpy(buf + g_rx_buf_len, args, size);
         g_rx_buf_len += size;
     } else if (state == UART_EVENT_RTO) {
         //g_rx_buf_len += device_read(download_uart,0,buf,BFLB_EFLASH_LOADER_READBUF_SIZE-g_rx_buf_len);
-        BL702_MemCpy(buf + g_rx_buf_len, args, size);
+        arch_memcpy(buf + g_rx_buf_len, args, size);
         g_rx_buf_len += size;
     }
 }
 
 static void bflb_eflash_loader_usart_if_init(uint32_t bdrate)
 {
-    uart_register(0, "download_uart");
-    download_uart = device_find("download_uart");
+#if ((BLSP_BOOT2_MODE == BOOT2_MODE_RELEASE) || (BLSP_BOOT2_MODE == BOOT2_MODE_DEBUG))
+    uart_register(0, "debug_log");
+    download_uart = device_find("debug_log");
 
     if (download_uart) {
-        UART_DEV(download_uart)->fifo_threshold = 16;
+        UART_DEV(download_uart)->fifo_threshold = 16; 
         device_open(download_uart, DEVICE_OFLAG_STREAM_TX);
     }
+#endif    
+
+#if (BLSP_BOOT2_MODE == BOOT2_MODE_DEEP_DEBUG)    
+    uart_register(0, "iap_download");
+    download_uart = device_find("iap_download");
+
+    if (download_uart) {
+        UART_DEV(download_uart)->fifo_threshold = 16; 
+        device_open(download_uart, DEVICE_OFLAG_STREAM_TX);
+    }
+
+    uart_register(1, "debug_log");
+    struct device *uart = device_find("debug_log");
+
+    if (uart) {
+        device_open(uart, DEVICE_OFLAG_STREAM_TX);
+    }
+#endif    
+
 }
 
 void bflb_eflash_loader_usart_if_enable_int(void)
-{
-    struct device *uart = device_find("download_uart");
-
-    if (uart) {
-        device_close(uart);
+{  
+    if (download_uart) {
+        device_close(download_uart);
         device_open(download_uart, DEVICE_OFLAG_STREAM_TX | DEVICE_OFLAG_INT_RX);
-        device_set_callback(uart, uart0_irq_callback);
-        device_control(uart, DEVICE_CTRL_SET_INT, (void *)(UART_RX_FIFO_IT | UART_RTO_IT));
+        device_set_callback(download_uart, uart0_irq_callback);
+        device_control(download_uart, DEVICE_CTRL_SET_INT, (void *)(UART_RX_FIFO_IT | UART_RTO_IT));
     }
 }
 
 void bflb_eflash_loader_usart_if_send(uint8_t *data, uint32_t len)
 {
-    device_write(download_uart, 0, data, len);
+    if(download_uart){
+        device_write(download_uart, 0, data, len);
+    }
+    
 }
 
 int32_t bflb_eflash_loader_usart_if_wait_tx_idle(uint32_t timeout)
@@ -114,8 +142,9 @@ static uint32_t *bflb_eflash_loader_usart_if_receive(uint32_t *recv_len, uint16_
 {
     uint8_t *buf = (uint8_t *)g_eflash_loader_readbuf[g_rx_buf_index];
     uint16_t datalen = 0;
+    uint64_t time_now;
 
-    bflb_platform_clear_time();
+    time_now = bflb_platform_get_time_ms();
 
     do {
         if (g_rx_buf_len >= 4) {
@@ -137,7 +166,7 @@ static uint32_t *bflb_eflash_loader_usart_if_receive(uint32_t *recv_len, uint16_
                 }
             }
         }
-    } while (bflb_platform_get_time_ms() < timeout);
+    } while (bflb_platform_get_time_ms() - time_now < timeout);
 
     *recv_len = 0;
     return NULL;
@@ -145,7 +174,14 @@ static uint32_t *bflb_eflash_loader_usart_if_receive(uint32_t *recv_len, uint16_
 
 static void bflb_eflash_loader_usart_if_deinit()
 {
-    struct device *uart = device_find("download_uart");
+    struct device *uart;
+    uart = device_find("iap_download");
+
+    if (uart) {
+        device_close(uart);
+    }
+
+    uart = device_find("debug_log");
 
     if (uart) {
         device_close(uart);
@@ -162,15 +198,14 @@ int32_t bflb_eflash_loader_uart_init()
 
 int32_t bflb_eflash_loader_uart_handshake_poll()
 {
-    uint8_t buf[128];
+    uint8_t buf[UART_FIFO_LEN];
     uint32_t i;
     uint32_t handshake_count = 0;
     uint32_t rcv_buf_len = 0;
     //rcv_buf_len = UART_ReceiveData(g_uart_if_id,buf,128);
-    struct device *download_uart = device_find("download_uart");
-
+    //struct device *download_uart = device_find("download_uart");
     if (download_uart) {
-        rcv_buf_len = device_read(download_uart, 0, buf, 128);
+        rcv_buf_len = device_read(download_uart, 0, buf, UART_FIFO_LEN);
     }
 
     //while(1)
@@ -190,26 +225,37 @@ int32_t bflb_eflash_loader_uart_handshake_poll()
 
     if (handshake_count >= BFLB_EFLASH_LAODER_HAND_SHAKE_SUSS_COUNT) {
         //reinit uart
-        bflb_eflash_loader_printf("handshake %d 0x55 rcv\r\n", handshake_count);
+        MSG("handshake %d 0x55 rcv\r\n", handshake_count);
 
     } else {
-        //bflb_eflash_loader_printf("handshake err\r\n");
+        MSG("handshake err\r\n");
         return BFLB_EFLASH_LOADER_HANDSHAKE_FAIL;
     }
 
     /*receive shake hanad signal*/
     bflb_eflash_loader_usart_if_send((uint8_t *)"OK", 2);
+    //ARCH_Delay_MS(400);
     bflb_platform_delay_ms(400);
-
     /* consume the remaining bytes when shake hand(0x55) if needed */
-    rcv_buf_len = device_read(download_uart, 0, buf, 128); //UART_ReceiveData(g_uart_if_id,buf,128);
-    bflb_eflash_loader_printf("bflb_eflash_loader_usart_if_receive len %d\r\n", rcv_buf_len);
+    rcv_buf_len = device_read(download_uart, 0, buf, UART_FIFO_LEN); //UART_ReceiveData(g_uart_if_id,buf,128);
+    //MSG("bflb_eflash_loader_usart_if_receive len %d\r\n", rcv_buf_len);
     /*init rx info */
     g_rx_buf_index = 0;
     g_rx_buf_len = 0;
     BL_WR_WORD(g_eflash_loader_readbuf[g_rx_buf_index], 0);
-    bflb_eflash_loader_usart_if_enable_int();
+    
+#if (BLSP_BOOT2_MODE == BOOT2_MODE_DEBUG)
+    bflb_platform_print_set(1);
+    device_unregister("debug_log");
+    uart_register(0, "iap_download");
+    download_uart = device_find("iap_download");
 
+    if (download_uart) {
+        UART_DEV(download_uart)->fifo_threshold = 16; 
+        device_open(download_uart, DEVICE_OFLAG_STREAM_TX);
+    }
+#endif
+    bflb_eflash_loader_usart_if_enable_int();
     return BFLB_EFLASH_LOADER_HANDSHAKE_SUSS;
 }
 
@@ -234,11 +280,11 @@ int32_t bflb_eflash_loader_uart_change_rate(uint32_t oldval, uint32_t newval)
 {
     uint32_t b = (uint32_t)((g_detected_baudrate * 1.0 * newval) / oldval);
 
-    bflb_eflash_loader_printf("BDR:");
-    bflb_eflash_loader_printx(oldval);
-    bflb_eflash_loader_printx(newval);
-    bflb_eflash_loader_printx(g_detected_baudrate);
-    bflb_eflash_loader_printx(b);
+    //MSG("BDR:");
+    //MSG(oldval);
+    //MSG(newval);
+    //MSG(g_detected_baudrate);
+    //MSG(b);
 
     bflb_eflash_loader_usart_if_wait_tx_idle(BFLB_EFLASH_LOADER_IF_TX_IDLE_TIMEOUT);
 
@@ -268,9 +314,13 @@ void bflb_eflash_loader_main()
     uint8_t err_cnt = 0;
     uint8_t to_cnt = 0;
 
-    bflb_eflash_loader_printf("bflb_eflash_loader_main\r\n");
+    MSG("bflb_eflash_loader_main\r\n");
     pt_table_dump();
-    pt_table_get_iap_para(&p_iap_param);
+    ret = pt_table_get_iap_para(&p_iap_param);
+    if(0 != ret){
+        MSG("no valid partition table\r\n");
+        return; 
+    }
     bflb_eflash_loader_cmd_init();
 
     while (1) {
@@ -287,14 +337,14 @@ void bflb_eflash_loader_main()
         } while (to_cnt < 2 && total_len <= 0);
 
         if (to_cnt >= 2 || total_len <= 0) {
-            bflb_eflash_loader_printf("rcv err break\r\n");
+            MSG("rcv err break\r\n");
             break;
         }
 
-        //bflb_eflash_loader_printf("Recv\r\n");
+        MSG("Recv\r\n");
         //eflash_loader_dump_data(recv_buf,total_len);
         cmd_len = recv_buf[2] + (recv_buf[3] << 8);
-        bflb_eflash_loader_printf("cmd_len %d\r\n", cmd_len);
+        MSG("cmd_len %d\r\n", cmd_len);
 
         /* Check checksum*/
         if (recv_buf[1] != 0) {
@@ -306,7 +356,7 @@ void bflb_eflash_loader_main()
 
             if ((tmp & 0xff) != recv_buf[1]) {
                 /* FL+Error code(2bytes) */
-                bflb_eflash_loader_printf("Checksum error %02x\r\n", tmp & 0xff);
+                MSG("Checksum error %02x\r\n", tmp & 0xff);
                 g_eflash_loader_cmd_ack_buf[0] = BFLB_EFLASH_LOADER_CMD_NACK | ((BFLB_EFLASH_LOADER_CMD_CRC_ERROR << 16) & 0xffff0000);
                 bflb_eflash_loader_uart_send(g_eflash_loader_cmd_ack_buf, 4);
                 continue;
@@ -316,7 +366,7 @@ void bflb_eflash_loader_main()
         ret = bflb_eflash_loader_cmd_process(recv_buf[0], recv_buf + 4, cmd_len);
 
         if (ret != BFLB_EFLASH_LOADER_SUCCESS) {
-            bflb_eflash_loader_printf(" CMD Pro Ret %d\r\n", ret);
+            MSG(" CMD Pro Ret %d\r\n", ret);
 
             err_cnt++;
 

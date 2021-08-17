@@ -74,12 +74,15 @@ int uart_open(struct device *dev, uint16_t oflag)
     uart_cfg.txLinMode = UART_TX_LINMODE_ENABLE;
     uart_cfg.rxLinMode = UART_RX_LINMODE_ENABLE;
     uart_cfg.txBreakBitCnt = UART_TX_BREAKBIT_CNT;
+    uart_cfg.rxDeglitch = ENABLE;
 
     /* uart init with default configuration */
     UART_Init(uart_device->id, &uart_cfg);
 
     /* Enable tx free run mode */
     UART_TxFreeRun(uart_device->id, ENABLE);
+    /*set de-glitch function cycle count value*/
+    UART_SetDeglitchCount(uart_device->id, 2);
 
     /* Set rx time-out value */
     UART_SetRxTimeoutValue(uart_device->id, UART_DEFAULT_RTO_TIMEOUT);
@@ -148,9 +151,9 @@ int uart_control(struct device *dev, int cmd, void *args)
                 offset++;
             }
             if (uart_device->id == UART0_ID)
-                NVIC_EnableIRQ(UART0_IRQn);
+                CPU_Interrupt_Enable(UART0_IRQn);
             else if (uart_device->id == UART1_ID)
-                NVIC_EnableIRQ(UART1_IRQn);
+                CPU_Interrupt_Enable(UART1_IRQn);
 
             break;
         }
@@ -163,9 +166,9 @@ int uart_control(struct device *dev, int cmd, void *args)
                 offset++;
             }
             if (uart_device->id == UART0_ID)
-                NVIC_DisableIRQ(UART0_IRQn);
+                CPU_Interrupt_Disable(UART0_IRQn);
             else if (uart_device->id == UART1_ID)
-                NVIC_DisableIRQ(UART1_IRQn);
+                CPU_Interrupt_Disable(UART1_IRQn);
 
             break;
         }
@@ -182,8 +185,6 @@ int uart_control(struct device *dev, int cmd, void *args)
             uart_param_cfg_t *cfg = (uart_param_cfg_t *)args;
             UART_CFG_Type uart_cfg;
 
-            /* Disable uart before config */
-            UART_Disable(uart_device->id, UART_TXRX);
             uint32_t uart_clk = peripheral_clock_get(PERIPHERAL_CLOCK_UART);
 
             uart_cfg.uartClk = uart_clk;
@@ -199,16 +200,6 @@ int uart_control(struct device *dev, int cmd, void *args)
             uart_cfg.rxLinMode = UART_RX_LINMODE_ENABLE;
             uart_cfg.txBreakBitCnt = UART_TX_BREAKBIT_CNT;
             UART_Init(uart_device->id, &uart_cfg);
-#ifdef BSP_USING_UART0
-            if (uart_device->id == UART0_ID)
-                Interrupt_Handler_Register(UART0_IRQn, UART0_IRQ);
-#endif
-#ifdef BSP_USING_UART1
-            if (uart_device->id == UART1_ID)
-                Interrupt_Handler_Register(UART1_IRQn, UART1_IRQ);
-#endif
-            /* Enable uart */
-            UART_Enable(uart_device->id, UART_TXRX);
             break;
         }
         case DEVICE_CTRL_GET_CONFIG /* constant-expression */:

@@ -23,7 +23,7 @@ sipeed opensource mechanical keyboard make with BL706 <br>
 ```sh
 git clone https://github.com/sipeed/sipeed_keyboard.git
 cd sipeed_keyboard/firmware/bl_mcu_sdk
-make build SUPPORT_FREERTOS=y SUPPORT_BLE=y BOARD=sipeed_keyboard APP=sipeed_keyboard_68
+make build BOARD=sipeed_keyboard APP=sipeed_keyboard_68
 
 ```
 ## 交流QQ群

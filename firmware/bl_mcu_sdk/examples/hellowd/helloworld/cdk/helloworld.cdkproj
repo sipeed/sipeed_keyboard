@@ -235,8 +235,8 @@ Board: bl70x_iot
     </File>
   </VirtualDirectory>
   <MonitorProgress>
-    <DebugLaunch>80</DebugLaunch>
-    <FlashOperate>25</FlashOperate>
+    <DebugLaunch>90</DebugLaunch>
+    <FlashOperate>37</FlashOperate>
   </MonitorProgress>
   <VirtualDirectory Name="components">
     <VirtualDirectory Name="fatfs">
@@ -288,7 +288,7 @@ Board: bl70x_iot
   <Dependencies Name="OpenOCD_Debug"/>
   <DebugSessions>
     <watchExpressions/>
-    <memoryExpressions>;;;</memoryExpressions>
+    <memoryExpressions>0x23000000;;;</memoryExpressions>
     <statistics>;;MHZ;</statistics>
     <peripheralTabs>
       <Tab disFormat="Hex">glb</Tab>
@@ -407,7 +407,7 @@ Board: bl70x_iot
         </AfterMake>
       </User>
       <Compiler>
-        <Define>ARCH_RISCV;BFLB_USE_HAL_DRIVER;bl706_avb</Define>
+        <Define>ARCH_RISCV;BFLB_USE_HAL_DRIVER;bl706_iot</Define>
         <Undefine/>
         <Optim>Optimize more (-O2)</Optim>
         <DebugLevel>Default (-g)</DebugLevel>
@@ -598,7 +598,7 @@ Board: bl70x_iot
         </AfterMake>
       </User>
       <Compiler>
-        <Define>ARCH_RISCV;BFLB_USE_HAL_DRIVER;bl706_avb</Define>
+        <Define>ARCH_RISCV;BFLB_USE_HAL_DRIVER;bl706_iot</Define>
         <Undefine/>
         <Optim>Optimize more (-O2)</Optim>
         <DebugLevel>Default (-g)</DebugLevel>
@@ -690,7 +690,7 @@ Board: bl70x_iot
         <ResetAndRun>no</ResetAndRun>
         <ResetType>Hard Reset</ResetType>
         <SoftResetVal/>
-        <External>yes</External>
+        <External>no</External>
         <Command>$(ProjectPath)/../../../../tools/bflb_flash_tool/bflb_mcu_tool.exe</Command>
         <Arguments>--chipname=bl702 --firmware="$(ProjectPath)/Obj/$(ProjectName).bin" </Arguments>
       </Flash>
