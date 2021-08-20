@@ -28,6 +28,7 @@
 #include "smk_usb.h"
 #include "smk_shell.h"
 #include "smk_command.h"
+#include "smk_spirgb.h"
 
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
@@ -134,6 +135,8 @@ int main(void)
     static StaticTask_t ble_init_task_h;
     static StackType_t usb_init_stack[512];
     static StaticTask_t usb_init_task_h;
+    static StackType_t rgb_loop_stack[1024];
+    static StaticTask_t rgb_loop_task_h;
 
     bflb_platform_init(0);
     shell_init();
@@ -145,7 +148,7 @@ int main(void)
     MSG("[SMK] Device init...\r\n");
     xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
     xTaskCreateStatic(usb_init_task, (char *)"usb_init", sizeof(usb_init_stack) / 4, NULL, 15, usb_init_stack, &usb_init_task_h);
-
+    xTaskCreateStatic(rgb_loop_task, (char *)"rgb_loop", sizeof(rgb_loop_stack) / 4, NULL, 15, rgb_loop_stack, &rgb_loop_task_h);
 
     MSG("[SMK] Start task scheduler...\r\n");
     vTaskStartScheduler();
