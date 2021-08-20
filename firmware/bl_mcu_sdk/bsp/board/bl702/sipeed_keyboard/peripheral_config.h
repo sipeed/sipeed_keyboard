@@ -116,12 +116,12 @@
 #define SPI0_CONFIG                                 \
     {                                               \
         .id = 0,                                    \
-        .clk = 18000000,                            \
+        .clk = 4000000,                             \
         .mode = SPI_MASTER_MODE,                    \
-        .direction = SPI_MSB_BYTE0_DIRECTION_FIRST, \
+        .direction = SPI_MSB_BYTE3_DIRECTION_FIRST, \
         .clk_polaraity = SPI_POLARITY_LOW,          \
         .clk_phase = SPI_PHASE_1EDGE,               \
-        .datasize = SPI_DATASIZE_8BIT,              \
+        .datasize = SPI_DATASIZE_32BIT,             \
         .fifo_threshold = 1,                        \
     }
 #endif
@@ -257,8 +257,8 @@
         .transfer_mode = DMA_LLI_ONCE_MODE,   \
         .src_req = DMA_REQUEST_NONE,          \
         .dst_req = DMA_REQUEST_SPI0_TX,       \
-        .src_width = DMA_TRANSFER_WIDTH_8BIT, \
-        .dst_width = DMA_TRANSFER_WIDTH_8BIT, \
+        .src_width = DMA_TRANSFER_WIDTH_32BIT,\
+        .dst_width = DMA_TRANSFER_WIDTH_32BIT,\
     }
 #endif
 #endif
