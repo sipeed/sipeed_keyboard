@@ -3,6 +3,6 @@
 
 #define SPI_DEGLITCH_ENABLE          (0)
 #define SPI_CONTINUE_TRANSFER_ENABLE (1)
-#define SPI_SWAP_ENABLE              (1)
+#define SPI_SWAP_ENABLE              (0)
 
 #endif
