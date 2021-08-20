@@ -1,7 +1,9 @@
-#ifndef __NEOPIXEL_SPI_
-#define __NEOPIXEL_SPI_
+#ifndef __SMK_SPIRGB_H
+#define __SMK_SPIRGB_H
 
 #include <stdint.h>
+
+#define SMK_RGB_USE_DMA
 
 // Frame format
 // Each uint32_t => 8b color channel
@@ -18,7 +20,10 @@
 // - SPI0
 // - - .clk = 4000000
 // - - .direction = SPI_MSB_BYTE3_DIRECTION_FIRST
-// - - frame size modified by transmit function
+// - - .datasize = SPI_DATASIZE_32BIT
+// - DMA0_CH3
+// - - .src_width = DMA_TRANSFER_WIDTH_32BIT
+// - - .dst_width = DMA_TRANSFER_WIDTH_32BIT
 
 typedef struct {
 	union {
@@ -56,6 +61,6 @@ typedef struct {
 
 #define RGB_LENGTH 68
 
-static void rgb_loop_task(void *pvParameters);
+void rgb_loop_task(void *pvParameters);
 
 #endif
