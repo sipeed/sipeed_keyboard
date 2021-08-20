@@ -5,6 +5,17 @@
 
 #define SMK_RGB_USE_DMA
 
+#define RGB_DEBUG_AOFF  0
+#define RGB_DEBUG_BON   1
+#define RGB_DEBUG_AFLOW 2
+#define RGB_DEBUG_BFLOW 3
+#define RGB_DEBUG_AON   4
+#define RGB_DEBUG_AONR  5
+#define RGB_DEBUG_AONG  6
+#define RGB_DEBUG_AONB  7
+
+extern int rgb_debug_mode;
+
 // Frame format
 // Each uint32_t => 8b color channel
 // Sequence: 24b GRB, MSB first, closest led first

@@ -29,6 +29,7 @@
 #include "smk_shell.h"
 #include "smk_command.h"
 #include "smk_spirgb.h"
+#include "smk_spirgb_command.h"
 
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")

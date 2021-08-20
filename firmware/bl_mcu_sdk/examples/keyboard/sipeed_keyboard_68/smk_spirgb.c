@@ -64,12 +64,15 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 
 #endif
 
+int rgb_debug_mode = 2;
+
 DRGB RGB_Buffer[RGB_LENGTH];
 
 void rgb_loop_task(void *pvParameters)
 {
     struct device *spi, *dma_ch3;
     uint32_t i, j;
+	uint8_t htemp, vtemp;
 
     spi_register(SPI0_INDEX, "spi");
     spi = device_find("spi");
@@ -88,7 +91,36 @@ void rgb_loop_task(void *pvParameters)
 		vTaskDelay(10);
 
 		for (i = 0; i < RGB_LENGTH; i++) {
-			RGB_Buffer[i].word = 0x66CCFF - (i+j) - (i+j)*0x100 - (i+j)*0x10000;
+			switch (rgb_debug_mode) {
+			case RGB_DEBUG_AOFF:
+				RGB_Buffer[i].word = 0;
+				break;
+			case RGB_DEBUG_BON:
+				RGB_Buffer[i].word = ((j/5) % RGB_LENGTH == i) ? 0xFFFFFF : 0x000000;
+				break;
+			case RGB_DEBUG_AFLOW:
+				htemp = (j/512) % 7 + 1;
+				vtemp = (j % 512 >= 256) ? (511 - j) : j;
+				RGB_Buffer[i].R = (htemp & 0x01) ? vtemp : 0; 
+				RGB_Buffer[i].G = (htemp & 0x02) ? vtemp : 0; 
+				RGB_Buffer[i].B = (htemp & 0x04) ? vtemp : 0; 
+				break;
+			case RGB_DEBUG_BFLOW:
+				RGB_Buffer[i].word = 0x66CCFF - (i+j) - (i+j)*0x100 - (i+j)*0x10000;
+				break;
+			case RGB_DEBUG_AON:
+				RGB_Buffer[i].word = 0xFFFFFF;
+				break;
+			case RGB_DEBUG_AONR:
+				RGB_Buffer[i].word = 0xFF0000;
+				break;
+			case RGB_DEBUG_AONG:
+				RGB_Buffer[i].word = 0x00FF00;
+				break;
+			case RGB_DEBUG_AONB:
+				RGB_Buffer[i].word = 0x0000FF;
+				break;
+			}
 		}
 
 #ifdef SMK_RGB_USE_DMA
