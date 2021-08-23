@@ -117,10 +117,17 @@ void usbd_hid_int_callback(uint8_t ep)
 {
     usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
 }
-
+void usbd_hid_out_callback(uint8_t ep)
+{
+   // usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
+}
 static usbd_endpoint_t hid_in_ep = {
     .ep_cb = usbd_hid_int_callback,
     .ep_addr = 0x81
+};
+static usbd_endpoint_t hid_out_ep = {
+    .ep_cb = usbd_hid_out_callback,
+    .ep_addr = 0x01
 };
 
 extern struct device *usb_dc_init(void);
@@ -129,7 +136,8 @@ void smk_hid_usb_init()
 {
     usbd_hid_add_interface(&hid_class, &hid_intf);
     usbd_interface_add_endpoint(&hid_intf, &hid_in_ep);
-    usbd_hid_report_descriptor_register(0, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
+    usbd_interface_add_endpoint(&hid_intf, &hid_out_ep);
+    usbd_hid_report_descriptor_register(hid_intf.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
 }
 
 void smk_usb_hid_daemon_task(void *pvParameters)
