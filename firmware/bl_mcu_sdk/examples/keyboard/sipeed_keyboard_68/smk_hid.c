@@ -10,7 +10,10 @@
 #include "keyboard/smk_event.h"
 #include "keyboard/smk_keycode.h"
 
+volatile int current_interface =KEYBOARD_REPORT_ID;
+
 static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
+    REPORT_ID(1)
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
     0x09, 0x06, // USAGE (Keyboard)
     0xa1, 0x01, // COLLECTION (Application)
@@ -43,6 +46,11 @@ static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
     0x29, 0x65, // USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00, // INPUT (Data,Ary,Abs)
     0xc0        // END_COLLECTION
+    ,
+    REPORT_ID(2)
+    DATA_PORT_DR
+    REPORT_ID(3)
+    DATA_PORT_DR
 };
 
 extern struct device *usb_fs;
@@ -115,10 +123,26 @@ static void smk_usb_hid_commit(smk_usb_hid_type *hid_usb)
 
 void usbd_hid_int_callback(uint8_t ep)
 {
-    usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
+    static uint8_t inbuffer[64];
+    if(current_interface==KEYBOARD_REPORT_ID)
+    {
+        inbuffer[0]=KEYBOARD_REPORT_ID;
+        memcpy(inbuffer+1,hid_usb.buf[hid_usb.flag],8);
+        usbd_ep_write(HID_INT_EP,inbuffer , 9, NULL);
+    }
+
 }
 void usbd_hid_out_callback(uint8_t ep)
 {
+//    static uint8_t outbuffer[64];
+//    uint32_t readlen;
+//    usbd_ep_read(HID_OUT_EP,outbuffer,64,&readlen);
+//    if(readlen==0)
+//        return;
+//    acm_printf("readed:%d bytes report_id: %d\r\n", readlen,outbuffer[0]);//for debug
+//    for(int i=0;i<63;i++){
+//        acm_printf("0x%02x,", outbuffer[i+1]);//for debug
+//    } acm_printf("\r\n");
    // usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
 }
 static usbd_endpoint_t hid_in_ep = {
