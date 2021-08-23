@@ -31,6 +31,9 @@
 #include "smk_spirgb.h"
 #include "smk_spirgb_command.h"
 
+#include "keyboard/smk_keyscan.h"
+#include "keyboard/smk_keymap.h"
+
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
 static HeapRegion_t xHeapRegions[] = {
@@ -151,6 +154,43 @@ int main(void)
     xTaskCreateStatic(usb_init_task, (char *)"usb_init", sizeof(usb_init_stack) / 4, NULL, 15, usb_init_stack, &usb_init_task_h);
     xTaskCreateStatic(rgb_loop_task, (char *)"rgb_loop", sizeof(rgb_loop_stack) / 4, NULL, 15, rgb_loop_stack, &rgb_loop_task_h);
 
+    const smk_keyboard_hardware_type *hardware = smk_keyboard_get_hardware();
+    QueueHandle_t queue_keypos = xQueueCreate(
+        128,                   // uxQueueLength
+        sizeof(smk_event_type) // uxItemSize
+    );
+    QueueHandle_t queue_keycode = xQueueCreate(
+        128,                   // uxQueueLength
+        sizeof(smk_event_type) // uxItemSize
+    );
+
+    smk_keyboard_scan_type *scan = smk_keyscan_init (hardware, queue_keypos);
+    smk_keyboard_map_type  *map  = smk_keymap_init  (hardware, queue_keypos, queue_keycode);
+
+    xTaskCreate(
+        smk_keyscan_task, // pxTaskCode
+        "KeyScan Task",   // pcName
+        512,              // usStackDepth
+        scan,             // pvParameters
+        15,               // uxPriority
+        NULL              // pxCreatedTask
+    );
+    xTaskCreate(
+        smk_keymap_task, // pxTaskCode
+        "KeyMap Task",   // pcName
+        512,             // usStackDepth
+        map,             // pvParameters
+        15,              // uxPriority
+        NULL             // pxCreatedTask
+    );
+    xTaskCreate(
+        smk_usb_hid_daemon_task, // pxTaskCode
+        "USB HID Task",          // pcName
+        256,                     // usStackDepth
+        queue_keycode,           // pvParameters
+        15,                      // uxPriority
+        NULL                     // pxCreateTask
+    );
     MSG("[SMK] Start task scheduler...\r\n");
     vTaskStartScheduler();
 
