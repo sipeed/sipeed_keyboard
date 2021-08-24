@@ -336,7 +336,7 @@ void usbd_hid_report_descriptor_register(uint8_t intf_num, const uint8_t *desc, 
 void usbd_hid_add_interface(usbd_class_t *class, usbd_interface_t *intf);
 void usbd_hid_reset_state(void);
 void usbd_hid_send_report(uint8_t ep, uint8_t *data, uint8_t len);
-
+void usbd_hid_set_report_callback_register(void (*set_reportcb)(void* data,int len));
 #ifdef __cplusplus
 }
 #endif

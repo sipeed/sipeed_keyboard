@@ -8,10 +8,50 @@
 #define HID_DEBUG(fmt, ...)
 #endif
 
-#define DATA_PORT_DR \
+//ARG:With or Without Report ID
+#define STANDERD_KAYBOARD_DR_SIZE 63
+#define STANDERD_KAYBOARD_RD(...) \
+    0x05, 0x01, /*USAGE_PAGE (Generic Desktop)*/\
+    0x09, 0x06, /*USAGE (Keyboard)*/\
+    0xa1, 0x01, /*COLLECTION (Application)*/    \
+    __VA_ARGS__                              \
+    0x05, 0x07, /*USAGE_PAGE (Keyboard)*/\
+    0x19, 0xe0, /*USAGE_MINIMUM (Keyboard LeftControl)*/\
+    0x29, 0xe7, /*USAGE_MAXIMUM (Keyboard Right GUI)*/\
+    0x15, 0x00,     /*LOGICAL_MINIMUM (0)*/\
+    0x25, 0x01,     /*LOGICAL_MAXIMUM (1)*/\
+    0x75, 0x01,     /*REPORT_SIZE (1)*/\
+    0x95, 0x08,     /*REPORT_COUNT (8)*/\
+    0x81, 0x02,     /*INPUT (Data,Var,Abs)*/\
+    0x95, 0x01,     /*REPORT_COUNT (1)*/\
+    0x75, 0x08,     /*REPORT_SIZE (8)*/\
+    0x81, 0x03,     /*INPUT (Cnst,Var,Abs)*/\
+    0x95, 0x05,     /*REPORT_COUNT (5)*/\
+    0x75, 0x01,     /*REPORT_SIZE (1)*/\
+    0x05, 0x08,     /*USAGE_PAGE (LEDs)*/\
+    0x19, 0x01,     /*USAGE_MINIMUM (Num Lock)*/\
+    0x29, 0x05,     /*USAGE_MAXIMUM (Kana)*/\
+    0x91, 0x02,     /*OUTPUT (Data,Var,Abs)*/\
+    0x95, 0x01,     /*REPORT_COUNT (1)*/\
+    0x75, 0x03,     /*REPORT_SIZE (3)*/\
+    0x91, 0x03,     /*OUTPUT (Cnst,Var,Abs)*/\
+    0x95, 0x06,     /*REPORT_COUNT (6)*/\
+    0x75, 0x08,     /*REPORT_SIZE (8)*/\
+    0x15, 0x00,     /*LOGICAL_MINIMUM (0)*/\
+    0x25, 0xFF,     /*LOGICAL_MAXIMUM (255)*/\
+    0x05, 0x07,     /*USAGE_PAGE (Keyboard)*/\
+    0x19, 0x00,     /*USAGE_MINIMUM (Reserved (no event indicated))*/\
+    0x29, 0x65,     /*USAGE_MAXIMUM (Keyboard Application)*/\
+    0x81, 0x00,     /*INPUT (Data,Ary,Abs)*/\
+    0xc0,       /*END_COLLECTION*/
+
+
+#define DATA_PORT_DR_SIZE 25
+#define DATA_PORT_DR(...) \
     0x06, 0x00, 0xff,              /*USAGE_PAGE (Vendor Defined Page 1)*/\
     0x09, 0x01,                    /*USAGE (Vendor Usage 1)*/\
-    0xa1, 0x01,                    /*COLLECTION (Application)*/\
+    0xa1, 0x01,                    /*COLLECTION (Application)*/          \
+    __VA_ARGS__                              \
     0x09, 0x02,                      /*USAGE (Vendor Usage 2)*/\
     0x15, 0x00,                      /*LOGICAL_MINIMUM (0)*/\
     0x26, 0xff, 0x00,                /*LOGICAL_MAXIMUM (255)*/\
@@ -25,28 +65,36 @@
 #define REPORT_ID(n) 0x85, n ,
 
 enum{
-    KEYBOARD_REPORT_ID=1,
-    DATA_REPORT1_ID,
+    DATA_REPORT1_ID=1,
     DATA_REPORT2_ID,
+    DATA_REPORT3_ID,
+    DATA_REPORT4_ID,
     REPORT_ID_COUNT
 };
 
-#define HID_DESCRIPTOR_LEN 32
-#define HID_KEYBOARD_REPORT_DESC_SIZE (2+63 + 2+DATA_PORT_DR_SIZE + 2+DATA_PORT_DR_SIZE)
+#define HID_KEYBOARD_DESCRIPTOR_LEN 25
+#define HID_KEYBOARD_REPORT_DESC_SIZE (STANDERD_KAYBOARD_DR_SIZE )
 
-#define HID_INT_EP          0x81
-#define HID_INT_EP_SIZE     64
-#define HID_INT_EP_INTERVAL 10
+#define HID_DATA_DESCRIPTOR_LEN 32
+#define HID_DATA_REPORT_DESC_SIZE (DATA_PORT_DR_SIZE+2 + DATA_PORT_DR_SIZE+2 + DATA_PORT_DR_SIZE+2 + DATA_PORT_DR_SIZE+2 )
 
-#define HID_OUT_EP          0x01
-#define HID_OUT_EP_SIZE     64
-#define HID_OUT_EP_INTERVAL 10
+#define HID_KB_INT_EP          0x81
+#define HID_KB_INT_EP_SIZE     8
+#define HID_KB_INT_EP_INTERVAL 10
+
+#define HID_DATA_INT_EP          0x86
+#define HID_DATA_INT_EP_SIZE     64
+#define HID_DATA_INT_EP_INTERVAL 1
+
+#define HID_DATA_OUT_EP          0x02
+#define HID_DATA_OUT_EP_SIZE     64
+#define HID_DATA_OUT_EP_INTERVAL 1
 
 void smk_hid_usb_init();
 
 void smk_usb_hid_daemon_task(void *pvParameters);
 
-#define DATA_PORT_DR_SIZE 25
+
 
 
 
