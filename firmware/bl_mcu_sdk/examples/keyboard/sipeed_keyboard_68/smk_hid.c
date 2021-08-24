@@ -1,3 +1,5 @@
+#include "atomic.h"
+
 #include "smk_hid.h"
 #include "hal_usb.h"
 #include "usbd_core.h"
@@ -10,45 +12,22 @@
 #include "keyboard/smk_event.h"
 #include "keyboard/smk_keycode.h"
 
+volatile int current_interface =DATA_REPORT1_ID;
+static atomic_t kb_isupdate=0;
 static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
-    0x05, 0x01, // USAGE_PAGE (Generic Desktop)
-    0x09, 0x06, // USAGE (Keyboard)
-    0xa1, 0x01, // COLLECTION (Application)
-    0x05, 0x07, // USAGE_PAGE (Keyboard)
-    0x19, 0xe0, // USAGE_MINIMUM (Keyboard LeftControl)
-    0x29, 0xe7, // USAGE_MAXIMUM (Keyboard Right GUI)
-    0x15, 0x00, // LOGICAL_MINIMUM (0)
-    0x25, 0x01, // LOGICAL_MAXIMUM (1)
-    0x75, 0x01, // REPORT_SIZE (1)
-    0x95, 0x08, // REPORT_COUNT (8)
-    0x81, 0x02, // INPUT (Data,Var,Abs)
-    0x95, 0x01, // REPORT_COUNT (1)
-    0x75, 0x08, // REPORT_SIZE (8)
-    0x81, 0x03, // INPUT (Cnst,Var,Abs)
-    0x95, 0x05, // REPORT_COUNT (5)
-    0x75, 0x01, // REPORT_SIZE (1)
-    0x05, 0x08, // USAGE_PAGE (LEDs)
-    0x19, 0x01, // USAGE_MINIMUM (Num Lock)
-    0x29, 0x05, // USAGE_MAXIMUM (Kana)
-    0x91, 0x02, // OUTPUT (Data,Var,Abs)
-    0x95, 0x01, // REPORT_COUNT (1)
-    0x75, 0x03, // REPORT_SIZE (3)
-    0x91, 0x03, // OUTPUT (Cnst,Var,Abs)
-    0x95, 0x06, // REPORT_COUNT (6)
-    0x75, 0x08, // REPORT_SIZE (8)
-    0x15, 0x00, // LOGICAL_MINIMUM (0)
-    0x25, 0xFF, // LOGICAL_MAXIMUM (255)
-    0x05, 0x07, // USAGE_PAGE (Keyboard)
-    0x19, 0x00, // USAGE_MINIMUM (Reserved (no event indicated))
-    0x29, 0x65, // USAGE_MAXIMUM (Keyboard Application)
-    0x81, 0x00, // INPUT (Data,Ary,Abs)
-    0xc0        // END_COLLECTION
+    STANDERD_KAYBOARD_RD()
 };
-
+static const uint8_t hid_data_report_desc[HID_DATA_REPORT_DESC_SIZE] = {
+    DATA_PORT_DR(REPORT_ID(1))
+    DATA_PORT_DR(REPORT_ID(2))
+    DATA_PORT_DR(REPORT_ID(3))
+    DATA_PORT_DR(REPORT_ID(4))
+};
 extern struct device *usb_fs;
 
 static usbd_class_t hid_class;
-static usbd_interface_t hid_intf;
+static usbd_interface_t hid_intf_kb;
+static usbd_interface_t hid_intf_data;
 
 typedef struct {
     uint8_t buf[2][8];
@@ -113,31 +92,69 @@ static void smk_usb_hid_commit(smk_usb_hid_type *hid_usb)
     }
 }
 
-void usbd_hid_int_callback(uint8_t ep)
+void usbd_hid_kb_int_callback(uint8_t ep)
 {
-    usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
+    if(atomic_set(&kb_isupdate,0))
+        usbd_ep_write(HID_KB_INT_EP,hid_usb.buf[hid_usb.flag] , 8, NULL);
 }
-void usbd_hid_out_callback(uint8_t ep)
+static uint8_t data_in_buffer[64];
+static uint8_t data_out_buffer[64];
+atomic_t dataget=0;
+void usbd_hid_data_int_callback(uint8_t ep)
 {
-   // usbd_ep_write(HID_INT_EP, hid_usb.buf[hid_usb.flag], 8, NULL);
+    if(current_interface==DATA_REPORT1_ID&&atomic_set(&dataget,0))
+    {
+        data_in_buffer[0]=DATA_REPORT1_ID;
+        usbd_ep_write(HID_DATA_INT_EP,data_in_buffer , 64, NULL);
+    }
 }
-static usbd_endpoint_t hid_in_ep = {
-    .ep_cb = usbd_hid_int_callback,
-    .ep_addr = 0x81
+void usbd_hid_data_out_callback(uint8_t ep)
+{
+
+    static uint32_t actual_read_length;
+    if (usbd_ep_read(HID_DATA_OUT_EP, data_out_buffer, 64, &actual_read_length) < 0) {
+        USBD_LOG_DBG("[HID]  Read DATA Packet failed\r\n");
+        usbd_ep_set_stall(HID_DATA_OUT_EP);
+        return;
+    }
+    USBD_LOG_DBG("data_get_data:%d\r\n",actual_read_length);
+    if(actual_read_length)
+    {
+        memcpy(data_in_buffer,data_out_buffer,64);
+        dataget=1;
+    }
+    usbd_ep_read(HID_DATA_OUT_EP, NULL, 0, NULL);
+}
+static usbd_endpoint_t hid_kb_in_ep = {
+    .ep_cb = usbd_hid_kb_int_callback,
+    .ep_addr = HID_KB_INT_EP
 };
-static usbd_endpoint_t hid_out_ep = {
-    .ep_cb = usbd_hid_out_callback,
-    .ep_addr = 0x01
+static usbd_endpoint_t hid_data_in_ep = {
+    .ep_cb = usbd_hid_data_int_callback,
+    .ep_addr = HID_DATA_INT_EP
+};
+static usbd_endpoint_t hid_data_out_ep = {
+    .ep_cb = usbd_hid_data_out_callback,
+    .ep_addr = HID_DATA_OUT_EP
 };
 
 extern struct device *usb_dc_init(void);
 
+void keyboard_led_cb(void* data,int len){
+    USBD_LOG_DBG("get_data:%d\r\n",len);
+}
+
 void smk_hid_usb_init()
 {
-    usbd_hid_add_interface(&hid_class, &hid_intf);
-    usbd_interface_add_endpoint(&hid_intf, &hid_in_ep);
-    usbd_interface_add_endpoint(&hid_intf, &hid_out_ep);
-    usbd_hid_report_descriptor_register(hid_intf.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
+    usbd_hid_add_interface(&hid_class, &hid_intf_kb);
+    usbd_interface_add_endpoint(&hid_intf_kb, &hid_kb_in_ep);
+    usbd_hid_set_report_callback_register(keyboard_led_cb);
+    usbd_hid_report_descriptor_register(hid_intf_kb.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
+
+    usbd_hid_add_interface(&hid_class, &hid_intf_data);
+    usbd_interface_add_endpoint(&hid_intf_data, &hid_data_in_ep);
+    usbd_interface_add_endpoint(&hid_intf_data, &hid_data_out_ep);
+    usbd_hid_report_descriptor_register(hid_intf_data.intf_num, hid_data_report_desc, HID_DATA_REPORT_DESC_SIZE);
 }
 
 void smk_usb_hid_daemon_task(void *pvParameters)
@@ -171,6 +188,7 @@ void smk_usb_hid_daemon_task(void *pvParameters)
 
         case SMK_EVENT_KEYCODE_COMMIT:
             smk_usb_hid_commit(&hid_usb);
+            kb_isupdate=true;
             HID_DEBUG("[SMK][HID] KeyCode commit\r\n", event.data);
             break;
         }
