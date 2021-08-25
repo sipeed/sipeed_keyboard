@@ -140,15 +140,15 @@ static usbd_endpoint_t hid_data_out_ep = {
 
 extern struct device *usb_dc_init(void);
 
-void keyboard_led_cb(void* data,int len){
-    USBD_LOG_DBG("get_data:%d\r\n",len);
+void keyboard_led_cb(uint8_t* data,uint32_t len){
+    USBD_LOG_DBG("get_led_data:%d\r\n",len);
 }
 
 void smk_hid_usb_init()
 {
     usbd_hid_add_interface(&hid_class, &hid_intf_kb);
     usbd_interface_add_endpoint(&hid_intf_kb, &hid_kb_in_ep);
-    usbd_hid_set_report_callback_register(keyboard_led_cb);
+    usbd_hid_callback_register(hid_intf_kb.intf_num,keyboard_led_cb,NULL,NULL,NULL,NULL,NULL,NULL);
     usbd_hid_report_descriptor_register(hid_intf_kb.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
 
     usbd_hid_add_interface(&hid_class, &hid_intf_data);
