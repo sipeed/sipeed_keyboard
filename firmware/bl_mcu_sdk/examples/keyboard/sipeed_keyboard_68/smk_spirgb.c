@@ -64,7 +64,7 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 
 #endif
 
-int rgb_debug_mode = 2;
+int rgb_debug_mode = RGB_DEBUG_AOFF;
 
 DRGB RGB_Buffer[RGB_LENGTH];
 
