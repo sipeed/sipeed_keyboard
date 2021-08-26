@@ -5,16 +5,20 @@
 
 #define SMK_RGB_USE_DMA
 
-#define RGB_DEBUG_AOFF  0
-#define RGB_DEBUG_BON   1
-#define RGB_DEBUG_AFLOW 2
-#define RGB_DEBUG_BFLOW 3
-#define RGB_DEBUG_AON   4
-#define RGB_DEBUG_AONR  5
-#define RGB_DEBUG_AONG  6
-#define RGB_DEBUG_AONB  7
+enum rgb_mode_t{
+ RGB_MODE_AOFF =0,
+ RGB_MODE_BON ,
+ RGB_MODE_AFLOW,
+ RGB_MODE_BFLOW,
+ RGB_MODE_AON,
+ RGB_MODE_AONR,
+ RGB_MODE_AONG,
+ RGB_MODE_AONB,
+    RGB_MODE_COUNT
+};
 
-extern int rgb_debug_mode;
+
+extern int rgb_mode;
 
 // Frame format
 // Each uint32_t => 8b color channel

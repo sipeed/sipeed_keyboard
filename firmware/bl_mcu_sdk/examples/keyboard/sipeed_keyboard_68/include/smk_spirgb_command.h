@@ -5,8 +5,8 @@
 int rgbdemo(int argc, char *argv[])
 {
     if (argc == 2 && '0' <= argv[1][0] && argv[1][0] <= '7') {
-        rgb_debug_mode = argv[1][0] - '0';
-        acm_printf("RGB LED Demo mode %d\r\n", rgb_debug_mode); 
+        rgb_mode = argv[1][0] - '0';
+        acm_printf("RGB LED Demo mode %d\r\n", rgb_mode);
         return 0;
     } else {
         acm_printf("Wrong input\r\n");

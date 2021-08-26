@@ -12,6 +12,8 @@
 #include "keyboard/smk_event.h"
 #include "keyboard/smk_keycode.h"
 
+#include "smk_hid_protocol.h"
+
 volatile int current_data_interface =DATA_REPORT1_ID;
 volatile int current_nkro_interface =NKRO_REPORT_ID;
 
@@ -125,23 +127,24 @@ static void smk_usb_hid_commit(smk_usb_hid_type *hid_usb)
         hid_usb->nkro_buf[hid_usb->flag ^ 1][idx] = hid_usb->nkro_buf[hid_usb->flag][idx];
     }
 }
-
+static uint32_t times[4]={0};
 void usbd_hid_kb_int_callback(uint8_t ep)
 {
+    times[0]++;
     if(use_nkro&&!force_basic_keyboard)
         return;
-    //TODO: Don't Know Why ep is called all the time
-    if(/*(!kb_idle)||*/atomic_set(&kb_isupdate,0))
+    if((!kb_idle)||atomic_set(&kb_isupdate,0))
         usbd_ep_write(HID_KB_INT_EP,hid_usb.buf[hid_usb.flag] , 8, NULL);
 }
 void usbd_hid_nkro_int_callback(uint8_t ep)
 {
-
+    times[1]++;
     static uint8_t inttbuffer[HID_NKRO_INT_EP_SIZE];
     if (use_nkro == 0 ||force_basic_keyboard)
         return;
     if (current_nkro_interface == NKRO_REPORT_ID)
         if (atomic_set(&kb_isupdate, 0)) {
+            USBD_LOG_DBG("times:%u,%u,%u,%u\r\n",times[0],times[1],times[2],times[3]);
             inttbuffer[0]=NKRO_REPORT_ID;
             memcpy(inttbuffer + 1, hid_usb.nkro_buf[hid_usb.flag], 16);
             usbd_ep_write(HID_NKRO_INT_EP, inttbuffer, 16 + 1, NULL);
@@ -153,6 +156,7 @@ static uint8_t data_out_buffer[64];
 atomic_t dataget=0;
 void usbd_hid_data_int_callback(uint8_t ep)
 {
+    times[2]++;
     if(current_data_interface==DATA_REPORT1_ID&&atomic_set(&dataget,0))
     {
         data_in_buffer[0]=DATA_REPORT1_ID;
@@ -161,7 +165,7 @@ void usbd_hid_data_int_callback(uint8_t ep)
 }
 void usbd_hid_data_out_callback(uint8_t ep)
 {
-
+    times[3]++;
     static uint32_t actual_read_length;
     if (usbd_ep_read(HID_DATA_OUT_EP, data_out_buffer, 64, &actual_read_length) < 0) {
         USBD_LOG_DBG("[HID]  Read DATA Packet failed\r\n");
@@ -171,7 +175,7 @@ void usbd_hid_data_out_callback(uint8_t ep)
     USBD_LOG_DBG("data_get_data:%d\r\n",actual_read_length);
     if(actual_read_length)
     {
-        memcpy(data_in_buffer,data_out_buffer,64);
+        hid_data_protocal_callback(data_out_buffer,data_in_buffer);
         dataget=1;
     }
     usbd_ep_read(HID_DATA_OUT_EP, NULL, 0, NULL);
@@ -233,6 +237,8 @@ void smk_hid_usb_init()
     usbd_interface_add_endpoint(&hid_intf_nkro, &hid_nkro_in_ep);
     usbd_hid_callback_register(hid_intf_nkro.intf_num,keyboard_led_cb,NULL,nkro_set_idle_callback,NULL,NULL,NULL,smk_reset_callback);
     usbd_hid_report_descriptor_register(hid_intf_nkro.intf_num, hid_nkro_report_desc, HID_NKRO_REPORT_DESC_SIZE);
+
+    hid_data_protocol_init();
 }
 
 void smk_usb_hid_daemon_task(void *pvParameters)
