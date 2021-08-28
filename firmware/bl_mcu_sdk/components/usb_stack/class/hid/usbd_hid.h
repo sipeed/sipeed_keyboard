@@ -336,7 +336,15 @@ void usbd_hid_report_descriptor_register(uint8_t intf_num, const uint8_t *desc, 
 void usbd_hid_add_interface(usbd_class_t *class, usbd_interface_t *intf);
 void usbd_hid_reset_state(void);
 void usbd_hid_send_report(uint8_t ep, uint8_t *data, uint8_t len);
-void usbd_hid_set_report_callback_register(void (*set_reportcb)(void* data,int len));
+void usbd_hid_callback_register(uint8_t intf_num,
+                                void (*set_report_callback)(uint8_t *data, uint32_t len),
+                                void (*get_report_callback)(uint8_t **data, uint32_t *len),
+                                void (*set_idle_callback)(uint8_t reportid, uint8_t duration),
+                                uint8_t (*get_idle_callback)(uint8_t reportid),
+                                uint8_t (*get_protocol_callback)(),
+                                void (*set_protocol_callback)(uint8_t protocal),
+                                void (*reset_callback)()
+);
 #ifdef __cplusplus
 }
 #endif

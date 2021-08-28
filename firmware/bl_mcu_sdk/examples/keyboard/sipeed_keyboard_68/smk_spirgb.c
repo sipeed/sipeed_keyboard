@@ -5,6 +5,8 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "smk_hid_protocol.h"
+
 #ifdef SMK_RGB_USE_DMA
 
 uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
@@ -64,10 +66,24 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 
 #endif
 
-int rgb_debug_mode = 2;
+/*static */int rgb_mode = RGB_MODE_AOFF;
 
 DRGB RGB_Buffer[RGB_LENGTH];
 
+static const hid_data_reg_t modereg={
+    .base=0x8000,
+    .size=sizeof(rgb_mode),
+    .data=&rgb_mode,
+    .maptype=map_type_data,
+    .datatype=data_type_fixed
+};
+static const hid_data_reg_t ledreg={
+    .base=0x9000,
+    .size=sizeof(RGB_Buffer),
+    .data=&RGB_Buffer,
+    .maptype=map_type_data,
+    .datatype=data_type_fixed
+};
 void rgb_loop_task(void *pvParameters)
 {
     struct device *spi, *dma_ch3;
@@ -85,41 +101,46 @@ void rgb_loop_task(void *pvParameters)
 	} else {
 		vTaskDelete(NULL);
 	}
-	
+
+    hid_data_protocal_reg(&modereg);
+    hid_data_protocal_reg(&ledreg);
+
 	j = 0;
 	for (;;) {
 		vTaskDelay(10);
-
+        if(rgb_mode<RGB_MODE_COUNT)
 		for (i = 0; i < RGB_LENGTH; i++) {
-			switch (rgb_debug_mode) {
-			case RGB_DEBUG_AOFF:
+			switch (rgb_mode) {
+			case RGB_MODE_AOFF:
 				RGB_Buffer[i].word = 0;
 				break;
-			case RGB_DEBUG_BON:
+			case RGB_MODE_BON:
 				RGB_Buffer[i].word = ((j/5) % RGB_LENGTH == i) ? 0xFFFFFF : 0x000000;
 				break;
-			case RGB_DEBUG_AFLOW:
+			case RGB_MODE_AFLOW:
 				htemp = (j/512) % 7 + 1;
 				vtemp = (j % 512 >= 256) ? (511 - j) : j;
 				RGB_Buffer[i].R = (htemp & 0x01) ? vtemp : 0; 
 				RGB_Buffer[i].G = (htemp & 0x02) ? vtemp : 0; 
 				RGB_Buffer[i].B = (htemp & 0x04) ? vtemp : 0; 
 				break;
-			case RGB_DEBUG_BFLOW:
+			case RGB_MODE_BFLOW:
 				RGB_Buffer[i].word = 0x66CCFF - (i+j) - (i+j)*0x100 - (i+j)*0x10000;
 				break;
-			case RGB_DEBUG_AON:
+			case RGB_MODE_AON:
 				RGB_Buffer[i].word = 0xFFFFFF;
 				break;
-			case RGB_DEBUG_AONR:
+			case RGB_MODE_AONR:
 				RGB_Buffer[i].word = 0xFF0000;
 				break;
-			case RGB_DEBUG_AONG:
+			case RGB_MODE_AONG:
 				RGB_Buffer[i].word = 0x00FF00;
 				break;
-			case RGB_DEBUG_AONB:
+			case RGB_MODE_AONB:
 				RGB_Buffer[i].word = 0x0000FF;
 				break;
+            default:
+                break;
 			}
 		}
 
