@@ -47,4 +47,4 @@ jobs:
       with:
         name: sipeed_keyboard_firmware
         path: |
-          firmware/bl_mcu_sdk/out/examples/keyboard/sipeed_keyboard_68/*
+          firmware/bl_mcu_sdk/out/*
