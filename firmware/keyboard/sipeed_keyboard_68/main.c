@@ -24,7 +24,7 @@
 #include <FreeRTOS.h>
 #include "semphr.h"
 #include "bl702.h"
-#include "smk_ble.h"
+// #include "smk_ble.h"
 #include "smk_usb.h"
 #include "smk_shell.h"
 #include "smk_command.h"
@@ -135,8 +135,8 @@ static void usb_init_task(void *pvParameters) //FIXME
 
 int main(void)
 {
-    static StackType_t ble_init_stack[1024];
-    static StaticTask_t ble_init_task_h;
+    // static StackType_t ble_init_stack[1024];
+    // static StaticTask_t ble_init_task_h;
     static StackType_t usb_init_stack[512];
     static StaticTask_t usb_init_task_h;
     static StackType_t rgb_loop_stack[1024];
@@ -145,12 +145,12 @@ int main(void)
     bflb_platform_init(0);
     shell_init();
     MSG("Sipeed Machine Keyboard start...\r\n");
-    HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
+    // HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
 
     vPortDefineHeapRegions(xHeapRegions);
 
     MSG("[SMK] Device init...\r\n");
-    xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
+    // xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
     xTaskCreateStatic(usb_init_task, (char *)"usb_init", sizeof(usb_init_stack) / 4, NULL, 15, usb_init_stack, &usb_init_task_h);
     xTaskCreateStatic(rgb_loop_task, (char *)"rgb_loop", sizeof(rgb_loop_stack) / 4, NULL, 15, rgb_loop_stack, &rgb_loop_task_h);
 
