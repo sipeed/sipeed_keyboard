@@ -27,14 +27,14 @@ jobs:
       uses: actions/cache@v1
       with: 
         path: /opt/riscv64-unknown-elf
-        key : ${{runner.OS}}-riscv64-unknown-elf-caches-${{ hashFiles('bin/riscv64-unknown-elf-gcc') }}
+        key : ${{runner.OS}}-riscv64-unknown-elf-caches-v1-${{ hashFiles('bin/riscv64-unknown-elf-gcc') }}
 
     - name: Download toolchain
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         git clone https://gitee.com/bouffalolab/toolchain_gcc_sifive_linux.git
         mv -f toolchain_gcc_sifive_linux /opt/riscv64-unknown-elf
-        
+
     - name: Make firmware
       run: |
         PATH="$PATH:/opt/riscv64-unknown-elf/bin"
