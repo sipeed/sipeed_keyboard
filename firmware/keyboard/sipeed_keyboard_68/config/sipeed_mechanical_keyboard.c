@@ -20,9 +20,9 @@ V       V / V       V / V       V / V metro V / V  94@  V / V  Git  V / V  Hub  
 #define LAYOUT_ROWS 5
 #define LAYERS      3
 
-#define Fn  MO(2)
-#define Win DF(0)
-#define Mac DF(1)
+#define Fn(n) TT((n), 2)
+#define Win   DF(0)
+#define Mac   DF(1)
 
 static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LAYOUT_COLS] = {
     {
@@ -35,7 +35,7 @@ static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LA
       /*<  /============='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`========.=======/`======/`. /    >*/
           {      LShift     ,   Z   ,   X   ,   C   ,   V   ,   B   ,   N   ,   M   , Comma ,  Dot  , Slash ,    RShift   ,   Up  ,  PgDn }, \
     /*<  /=========.======='`.====='`==.==='`======'`======'`======'`======'`======'`====.='`====.='`====.='`====.=======/`======/`======/`. /    >*/
-        {  LCtrl  ,   LGUI  ,   LAlt  ,                      Space                      ,  RAlt ,   Fn  , RCtrl ,  Left ,  Down , Right }  \
+        {  LCtrl  ,   LGUI  ,   LAlt  ,                      Space                      ,  RAlt , Fn(2) , RCtrl ,  Left ,  Down , Right }  \
   /*<  `---------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'`. /    >*/
  /*<   V          V         V         V                     Layer 0                     V       V       V       V       V       V       V /    >*/
 /*<    `----------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'     >*/
@@ -49,7 +49,7 @@ static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LA
       /*<  /============='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`========.=======/`======/`. /    >*/
           {      LShift     ,   Z   ,   X   ,   C   ,   V   ,   B   ,   N   ,   M   , Comma ,  Dot  , Slash ,    RShift   ,   Up  ,  PgDn }, \
     /*<  /=========.======='`.====='`==.==='`======'`======'`======'`======'`======'`====.='`====.='`====.='`====.=======/`======/`======/`. /    >*/
-        {  LCtrl  ,   LOpt  ,   LCmd  ,                      Space                      ,  RCmd ,   Fn  , RCtrl ,  Left ,  Down , Right }  \
+        {  LCtrl  ,   LOpt  ,   LCmd  ,                      Space                      ,  RCmd , Fn(2) , RCtrl ,  Left ,  Down , Right }  \
   /*<  `---------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'`. /    >*/
  /*<   V          V         V         V                     Layer 1                     V       V       V       V       V       V       V /    >*/
 /*<    `----------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'     >*/
@@ -63,7 +63,7 @@ static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LA
       /*<  /============='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`==.==='`========.=======/`======/`. /    >*/
           {      _____      , XXXXX , XXXXX , XXXXX , XXXXX , XXXXX , XXXXX , XXXXX ,   p1  ,   P2  ,   P3  ,    XXXXX    , _____ ,  End  }, \
     /*<  /=========.======='`.====='`==.==='`======'`======'`======'`======'`======'`====.='`====.='`====.='`====.=======/`======/`======/`. /    >*/
-        {  _____  ,  _____  ,  _____  ,                      _____                      ,   p0  , _____ ,  dot  , _____ , _____ , _____ }  \
+        {  _____  ,  _____  ,  _____  ,                      _____                      ,   p0  , MO(2) ,  dot  , _____ , _____ , _____ }  \
   /*<  `---------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'`. /    >*/
  /*<   V          V         V         V                     Layer 2                     V       V       V       V       V       V       V /    >*/
 /*<    `----------'`--------'`--------'`------------------------------------------------'`------'`------'`------'`------'`------'`------'     >*/
@@ -109,9 +109,12 @@ const smk_keyboard_hardware_type * smk_keyboard_get_hardware(void)
             .debounce_algo  = SMK_KEYBOARD_DEBOUNCE_ALGO_DEFER_G
         },
         .map = {
-            .layer_cnt     = LAYERS,
-            .default_layer = 0U,
-            .keymaps       = (const smk_keycode_type *)smk_default_matrix_keymaps
+            .layer_cnt           = LAYERS,
+            .default_layer       = 0U,
+            .keymaps             = (const smk_keycode_type *)smk_default_matrix_keymaps,
+            .tapping_key_cnt     = 2,
+            .tapping_term_ms     = 175,
+            .tapping_interval_ms = 500
         }
     };
 

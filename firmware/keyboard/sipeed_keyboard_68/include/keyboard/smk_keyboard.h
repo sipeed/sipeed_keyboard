@@ -38,6 +38,9 @@ typedef struct {
         uint8_t layer_cnt;
         uint8_t default_layer;
         const smk_keycode_type *keymaps; // [layer_id][layout_id] to keycode
+        uint16_t tapping_key_cnt;
+        uint16_t tapping_term_ms;
+        uint16_t tapping_interval_ms;
     } map;
 } smk_keyboard_hardware_type;
 
@@ -66,6 +69,9 @@ typedef struct {
     uint8_t  default_layer;
     
     uint8_t  commit_required;
+
+    void    *tapengine;
+    uint8_t  tapping_key_cnt;
 
     QueueHandle_t queue_in;
     QueueHandle_t queue_out;

@@ -340,7 +340,9 @@ typedef enum {
     DEFAULT_LAYER                 = 0x0100,
     DEFAULT_LAYER_MAX             = 0x01FF,
     MOMENTARILY_ACTIVES_LAYER     = 0x0200,
-    MOMENTARILY_ACTIVES_LAYER_NAX = 0x02FF
+    MOMENTARILY_ACTIVES_LAYER_MAX = 0x02FF,
+    TAP_TOGGLE_LAYER              = 0x0300,
+    TAP_TOGGLE_LAYER_MAX          = 0x03FF
 } smk_comb_keycode_type;
 
 #define LAYER_TYPE_MASK(keycode) ((keycode) & 0xFF00)
@@ -350,5 +352,9 @@ typedef enum {
 
 #define DF(n) (DEFAULT_LAYER + (n))
 #define DF_LAYER(keycode) ((keycode) & 0xFF)
+
+#define TT(n, count) (TAP_TOGGLE_LAYER + (((count) - 2) << 6) + (n))
+#define TT_LAYER(keycode) ((keycode) & 0x3F)
+#define TT_COUNT(keycode) ((((keycode) >> 6) & 0x03) + 2)
 
 #endif
