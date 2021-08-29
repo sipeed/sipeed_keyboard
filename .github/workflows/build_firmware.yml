@@ -32,10 +32,9 @@ jobs:
     - name: Download toolchain
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        wget -c https://dev.bouffalolab.com/media/upload/download/riscv64-elf-x86_64-20210120.tar.gz
-        mkdir /opt/riscv64-unknown-elf
-        tar -zxvf riscv64-elf-x86_64-20210120.tar.gz -C /opt/riscv64-unknown-elf
-
+        git clone https://gitee.com/bouffalolab/toolchain_gcc_sifive_linux.git
+        mv -f toolchain_gcc_sifive_linux /opt/riscv64-unknown-elf
+        
     - name: Make firmware
       run: |
         PATH="$PATH:/opt/riscv64-unknown-elf/bin"
