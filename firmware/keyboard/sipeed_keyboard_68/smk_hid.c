@@ -20,6 +20,7 @@ volatile int current_nkro_interface =NKRO_REPORT_ID;
 static atomic_t kb_isupdate=0;
 static int kb_idle=0;
 static int use_nkro=0;
+int kb_configured=0;
 int force_basic_keyboard=0;
 
 static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
@@ -219,13 +220,19 @@ void kb_set_idle_callback(uint8_t reportid, uint8_t duration){
 void smk_reset_callback(){
     USBD_LOG_DBG("switch to normal mode\r\n");
     use_nkro=0;
+    kb_configured=0;
+}
+
+void smk_configured_callback(){
+    USBD_LOG_DBG("usb configured\r\n");
+    kb_configured=1;
 }
 
 void smk_hid_usb_init()
 {
     usbd_hid_add_interface(&hid_class, &hid_intf_kb);
     usbd_interface_add_endpoint(&hid_intf_kb, &hid_kb_in_ep);
-    usbd_hid_callback_register(hid_intf_kb.intf_num,keyboard_led_cb,NULL,kb_set_idle_callback,NULL,NULL,NULL,smk_reset_callback);
+    usbd_hid_callback_register(hid_intf_kb.intf_num,keyboard_led_cb,NULL,kb_set_idle_callback,NULL,NULL,NULL,smk_reset_callback,smk_configured_callback);
     usbd_hid_report_descriptor_register(hid_intf_kb.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
 
     usbd_hid_add_interface(&hid_class, &hid_intf_data);
@@ -235,7 +242,7 @@ void smk_hid_usb_init()
 
     usbd_hid_add_interface(&hid_class, &hid_intf_nkro);
     usbd_interface_add_endpoint(&hid_intf_nkro, &hid_nkro_in_ep);
-    usbd_hid_callback_register(hid_intf_nkro.intf_num,keyboard_led_cb,NULL,nkro_set_idle_callback,NULL,NULL,NULL,smk_reset_callback);
+    usbd_hid_callback_register(hid_intf_nkro.intf_num,keyboard_led_cb,NULL,nkro_set_idle_callback,NULL,NULL,NULL,smk_reset_callback,NULL);
     usbd_hid_report_descriptor_register(hid_intf_nkro.intf_num, hid_nkro_report_desc, HID_NKRO_REPORT_DESC_SIZE);
 
     hid_data_protocol_init();
