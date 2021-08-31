@@ -9,6 +9,8 @@
 
 #ifdef SMK_RGB_USE_DMA
 
+extern const int CAPS_KEY_LED;
+uint8_t shared_kb_led=0;
 uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
 
 void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuffer) {
@@ -19,6 +21,10 @@ void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuff
 		Gbuf = rgbbuffer[i].G;
 		Rbuf = rgbbuffer[i].R;
 		Bbuf = rgbbuffer[i].B;
+
+        if(i==CAPS_KEY_LED) {
+            Gbuf=Rbuf=Bbuf=shared_kb_led&0x02?0xff:0;
+        }
 
 		for (j = 0; j < 8; j++) {
 			RGB_DMA_Buffer[i*3+0] = (RGB_DMA_Buffer[i*3+0] << 4) | ((Gbuf&0x80)?0xE:0x8);
