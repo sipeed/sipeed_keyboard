@@ -24,6 +24,8 @@ V       V / V       V / V       V / V metro V / V  94@  V / V  Git  V / V  Hub  
 #define Win   DF(0)
 #define Mac   DF(1)
 
+const int CAPS_KEY_LED=24;
+
 static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LAYOUT_COLS] = {
     {
             /*<  .-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.---------------.-------.        >*/

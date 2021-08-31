@@ -7,7 +7,11 @@
 
 #include "queue.h"
 
-#if 1
+#ifndef EN_SCAN_DEBUG
+#define EN_SCAN_DEBUG 0
+#endif
+
+#if EN_SCAN_DEBUG
 #include "bflb_platform.h"
 #define SCAN_DEBUG(fmt, ...) MSG_DBG(fmt, ##__VA_ARGS__)
 #else

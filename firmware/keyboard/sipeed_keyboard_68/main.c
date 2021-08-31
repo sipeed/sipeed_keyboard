@@ -24,7 +24,7 @@
 #include <FreeRTOS.h>
 #include "semphr.h"
 #include "bl702.h"
-// #include "smk_ble.h"
+#include "smk_ble.h"
 #include "smk_usb.h"
 #include "smk_shell.h"
 #include "smk_command.h"

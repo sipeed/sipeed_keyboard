@@ -1,7 +1,11 @@
 #ifndef __SMK_HID_H
 #define __SMK_HID_H
 
-#if 1
+#ifndef EN_HID_DEBUG
+#define EN_HID_DEBUG 0
+#endif
+
+#if EN_HID_DEBUG
 #include "bflb_platform.h"
 #define HID_DEBUG(fmt, ...) MSG_DBG(fmt, ##__VA_ARGS__)
 #else
@@ -159,7 +163,7 @@ enum{
 
 #define HID_KB_INT_EP          0x81
 #define HID_KB_INT_EP_SIZE     8
-#define HID_KB_INT_EP_INTERVAL 10
+#define HID_KB_INT_EP_INTERVAL 1
 
 #define HID_DATA_INT_EP          0x86
 #define HID_DATA_INT_EP_SIZE     64
@@ -171,7 +175,7 @@ enum{
 
 #define HID_NKRO_INT_EP          0x87
 #define HID_NKRO_INT_EP_SIZE     17
-#define HID_NKRO_INT_EP_INTERVAL 8
+#define HID_NKRO_INT_EP_INTERVAL 1
 
 void smk_hid_usb_init();
 

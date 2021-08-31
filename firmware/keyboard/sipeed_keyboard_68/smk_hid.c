@@ -203,6 +203,11 @@ static usbd_endpoint_t hid_data_out_ep = {
 extern struct device *usb_dc_init(void);
 
 void keyboard_led_cb(uint8_t* data,uint32_t len){
+    extern uint8_t shared_kb_led;
+    if(len==1)
+        shared_kb_led=*data;
+    if(len==2)
+        shared_kb_led=data[1];
     USBD_LOG_DBG("get_led_data:%d\r\n",len);
 }
 
