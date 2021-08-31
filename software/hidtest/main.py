@@ -34,13 +34,16 @@ def testreadback(kb:keyboard_ctl):
     while kb.hidruning:
         try:
             length,data=leds.getled()
-            # print("readed:",length,data)
+            print("readed:",length,data)
             size=10
             if(length>0):
                 visual=leds.getpreview(data,(size*leds.keyw,size*leds.keyh))
                 cv2.imshow("vis",visual)
                 cv2.waitKey(20)
             else:
+                kb.wait_for_kb()
+                leds.switchmode(3)
+                continue
                 kb.stop_and_wait()
                 sys.exit(0)
         except KeyboardInterrupt:
@@ -52,6 +55,7 @@ def testreadback(kb:keyboard_ctl):
 
 def testvideo(kb):
     leds = keyboard_led(kb)
+
     leds.switchmode(8)
 
     video=cv2.VideoCapture()
@@ -65,6 +69,7 @@ def testvideo(kb):
         try:
             ret, frame1 = video.read()
             if(ret):
+                kb.wait_for_kb()
                 leds.play_frame_full(frame1)
                 fps=video.get(cv2.CAP_PROP_FPS)
                 cv2.imshow("video",frame1)
@@ -82,8 +87,8 @@ def testvideo(kb):
 kb = keyboard_ctl()
 
 kb.init_hid_interface()
-# testvideo(kb)
-testreadback(kb)
+testvideo(kb)
+# testreadback(kb)
     # try:
     #     datain=input("set index:")
     #     addr=int(datain)*4+0x9000

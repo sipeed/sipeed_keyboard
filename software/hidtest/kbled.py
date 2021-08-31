@@ -117,6 +117,7 @@ class keyboard_led:
         self.keymapframe = np.zeros((1, 1, 1))
 
     def gammafunction(self, r, g, b):
+        return r,g,b
         return int(255 * pow(r / 255, 1.8)), int(255 * pow(g / 255, 1.8)), int(255 * pow(b / 255, 1.8))
 
     def play_frame_full(self, frame):
@@ -178,6 +179,19 @@ class keyboard_led:
             posx = l[0] * size[0]/self.keyw
             posy = l[1] * size[1]/self.keyh
             color = (int(colors[keyid][0]), int(colors[keyid][1]), int(colors[keyid][2]))
+            # print(color)
+            visual = cv2.circle(visual, (int(posx), int(posy)), int(min(size[0]/self.keyw,size[1]/self.keyh)), color, cv2.FILLED)
+            keyid += 1
+        return visual
+    def getpreview_rgb(self,data,size):
+        colors = np.frombuffer(data, dtype='uint8')
+        colors = np.reshape(colors, (-1, 4))
+        visual = np.zeros((int(size[1]), int(size[0]), 3), dtype='uint8')
+        keyid = int(0)
+        for l in self.keyledpos:
+            posx = l[0] * size[0]/self.keyw
+            posy = l[1] * size[1]/self.keyh
+            color = (int(colors[keyid][2]), int(colors[keyid][1]), int(colors[keyid][0]))
             # print(color)
             visual = cv2.circle(visual, (int(posx), int(posy)), int(min(size[0]/self.keyw,size[1]/self.keyh)), color, cv2.FILLED)
             keyid += 1

@@ -26,6 +26,8 @@ class keyboard_ctl:
         self.USB_VID = 0xffff
         self.UID_interface_number = 3
         self.hidruning = False
+        self.isdeviceoen = False
+        self.lock=threading.Lock()
 
     def newpackage(self, reportid, packageid, addr, len):
         buffer = bytearray(8)
@@ -56,6 +58,7 @@ class keyboard_ctl:
         return package
 
     def writedata(self, addr, buffer: bytearray):
+        self.lock.acquire()
         datasize = len(buffer)
         datapoint = 0
         while (datasize > 0):
@@ -72,22 +75,27 @@ class keyboard_ctl:
                 time.sleep(0.001)
                 wait -= 1
             if wait == 0:
+                self.lock.release()
                 return -1
             else:
                 datain = self.inputdatas.get()
                 reportid, retlen, packageid, retaddr = struct.unpack(self.Report_HEADER_Format, bytearray(datain[0:8]))
                 if packageid != self.getretid():
                     # print('pkgid error')
+                    self.lock.release()
                     return -2
                 # else:
                     # print('succeed')
                 if (retlen != datatosent):
+                    self.lock.release()
                     return -3
             datasize -= datatosent
             datapoint += datatosent
+        self.lock.release()
         return datasize
 
     def readdata(self, addr, len: int):
+        self.lock.acquire()
         datasize = len
         datapoint = 0
         retdata = bytearray(0)
@@ -104,51 +112,63 @@ class keyboard_ctl:
                 time.sleep(0.001)
                 wait -= 1
             if wait == 0:
+                self.lock.release()
                 return -1, retdata
             else:
                 datain = self.inputdatas.get()
                 reportid, retlen, packageid, retaddr = struct.unpack(self.Report_HEADER_Format, bytearray(datain[0:8]))
                 if packageid != self.totalpackageid:
                     # print('pkgid error')
+                    self.lock.release()
                     return -2, retdata
                 # else:
                 #     print('succeed')
                 if (retlen != datatoget):
+                    self.lock.release()
                     return -3, retdata
                 retdata += bytearray(datain[8:8 + retlen])
             datasize -= datatoget
             datapoint += datatoget
+        self.lock.release()
         return datapoint, retdata
 
     def hidthread(self):
         print("Openning HID device with VID = 0x%X" % self.USB_VID)
+        while self.hidruning:
+            # print("in while")
+            for dict in hid.enumerate(self.USB_VID):
+                time.sleep(0.1)
+                print(dict)
+                if dict["interface_number"] != self.UID_interface_number:
+                    continue
+                dev = hid.device()
 
-        for dict in hid.enumerate(self.USB_VID):
-            print(dict)
-            if dict["interface_number"] != self.UID_interface_number:
-                continue
-            dev = hid.device()
-
-            try:
-                dev.open_path(dict['path'])
-            except OSError:
-                print(dev.error())
-                continue
-            dev.set_nonblocking(True)
-            if dev:
                 try:
-                    while self.hidruning:
-                        if not self.outputdatas.empty():
-                            dataout = self.outputdatas.get()
-                            sent = dev.write(dataout)
-                            # print("output:{}bytes:{}".format(sent, dataout))
-                        str_in = dev.read(64)
-                        if len(str_in) > 0:
-                            # print("input:{}bytes:{}".format(len(str_in), str_in))
-                            self.inputdatas.put(str_in)
+                    dev.open_path(dict['path'])
                 except OSError:
-                    self.hidruning = False
-                    return
+                    # print(dev.error())
+                    continue
+                dev.set_nonblocking(True)
+                if dev:
+                    self.lock=threading.Lock()
+                    self.outputdatas=queue.Queue()
+                    self.inputdatas=queue.Queue()
+                    self.isdeviceoen= True
+                    try:
+                        while self.hidruning:
+                            if not self.outputdatas.empty():
+                                dataout = self.outputdatas.get()
+                                sent = dev.write(dataout)
+                                # print("output:{}bytes:{}".format(sent, dataout))
+                            str_in = dev.read(64)
+                            if len(str_in) > 0:
+                                # print("input:{}bytes:{}".format(len(str_in), str_in))
+                                self.inputdatas.put(str_in)
+                        dev.close()
+                    except OSError:
+                        print("error"*20)
+                        self.isdeviceoen= False
+                        break
 
     def init_hid_interface(self):
         self.hidruning = True
@@ -157,3 +177,12 @@ class keyboard_ctl:
     def stop_and_wait(self):
         self.hidruning =False
         self.thid.join()
+    def wait_for_kb(self,timeout=0):
+        timesecond=timeout/1000;
+        while not self.isdeviceoen:
+            time.sleep(0.001)
+            if(timeout!=0):
+                timesecond-=0.001
+                if timesecond<0:
+                    return False
+        return True
