@@ -26,6 +26,8 @@ V       V / V       V / V       V / V metro V / V  94@  V / V  Git  V / V  Hub  
 
 const int CAPS_KEY_LED=24;
 
+const float LED_GAMMA=1.8;
+
 static const smk_keycode_type smk_default_matrix_keymaps[LAYERS][LAYOUT_ROWS][LAYOUT_COLS] = {
     {
             /*<  .-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.-------.---------------.-------.        >*/

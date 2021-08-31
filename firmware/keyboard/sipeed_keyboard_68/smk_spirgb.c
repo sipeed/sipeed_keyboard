@@ -4,23 +4,35 @@
 #include "hal_dma.h"
 #include <FreeRTOS.h>
 #include <task.h>
+#include <math.h>
 
 #include "smk_hid_protocol.h"
 
 #ifdef SMK_RGB_USE_DMA
 
 extern const int CAPS_KEY_LED;
+extern const float LED_GAMMA;
 uint8_t shared_kb_led=0;
 uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
+
+static uint8_t gammalist[256];
+
+static init_gammalist() {
+    for(int i=0;i<256;i++) {
+        float a=((float)i)/255.0f;
+        float b=powf(a,LED_GAMMA)*255;
+        gammalist[i]=b>255?255:b;
+    }
+}
 
 void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuffer) {
 	int i, j;
 	uint8_t Gbuf, Rbuf, Bbuf;
 
 	for (i = 0; i < RGB_LENGTH; i++) {
-		Gbuf = rgbbuffer[i].G;
-		Rbuf = rgbbuffer[i].R;
-		Bbuf = rgbbuffer[i].B;
+		Gbuf = gammalist[rgbbuffer[i].G];
+		Rbuf = gammalist[rgbbuffer[i].R];
+		Bbuf = gammalist[rgbbuffer[i].B];
 
         if(i==CAPS_KEY_LED) {
             Gbuf=Rbuf=Bbuf=shared_kb_led&0x02?0xff:0;
@@ -95,6 +107,8 @@ void rgb_loop_task(void *pvParameters)
     struct device *spi, *dma_ch3;
     uint32_t i, j;
 	uint8_t htemp, vtemp;
+
+    init_gammalist();
 
     spi_register(SPI0_INDEX, "spi");
     spi = device_find("spi");
