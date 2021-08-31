@@ -4,7 +4,11 @@
 #include "smk_keyboard.h"
 #include "smk_event.h"
 
-#if 1
+#ifndef EN_MAP_DEBUG
+#define EN_MAP_DEBUG 0
+#endif
+
+#if EN_MAP_DEBUG
 #include "bflb_platform.h"
 #define MAP_DEBUG(fmt, ...) MSG_DBG(fmt, ##__VA_ARGS__)
 #else
