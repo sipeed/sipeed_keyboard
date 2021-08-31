@@ -12,6 +12,8 @@ typedef struct {
     TickType_t tick_changed;
 } smk_keyboard_debounce_t;
 
+uint32_t smk_keyscan_debounce_defer_g(smk_keyboard_scan_type *scan);
+
 int smk_keyscan_init_debounce_defer_g(smk_keyboard_scan_type *scan)
 {
     smk_keyboard_debounce_t *debounce = pvPortMalloc(sizeof(smk_keyboard_debounce_t));
@@ -31,9 +33,9 @@ int smk_keyscan_init_debounce_defer_g(smk_keyboard_scan_type *scan)
 uint32_t smk_keyscan_debounce_defer_g(smk_keyboard_scan_type *scan)
 {
     const smk_keyboard_hardware_type *hardware = scan->hardware;
-    size_t key_size = (hardware->matrix.total_cnt + 31U) / 32U * sizeof(uint32_t);
+    const size_t key_size = (hardware->matrix.total_cnt + 31U) / 32U * sizeof(uint32_t);
 
-    uint32_t *raw  = (uint32_t *)scan->key_raw;
+    const uint32_t *raw = (uint32_t *)scan->key_raw;
     uint32_t *next = (uint32_t *)scan->key_next;
     
     smk_keyboard_debounce_t *debounce = scan->debounce_opaque;
