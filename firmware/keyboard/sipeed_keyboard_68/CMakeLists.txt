@@ -15,6 +15,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_keymap.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_tapengine.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_defer_g.c
+                         ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_eager_defer_pk.c
                          ${CMAKE_CURRENT_LIST_DIR}/config/sipeed_mechanical_keyboard.c
                          ${BSP_COMMON_DIR}/usb/usb_dc.c
                          ${BSP_COMMON_DIR}/usb/uart_interface.c

@@ -106,7 +106,7 @@ const smk_keyboard_hardware_type * smk_keyboard_get_hardware(void)
         .scan = {
             .scan_period_ms = 2,
             .max_jitter_ms  = 10,
-            .debounce_algo  = SMK_KEYBOARD_DEBOUNCE_ALGO_DEFER_G
+            .debounce_algo  = SMK_KEYBOARD_DEBOUNCE_ALGO_EAGER_DEFER_PK
         },
         .map = {
             .layer_cnt           = LAYERS,

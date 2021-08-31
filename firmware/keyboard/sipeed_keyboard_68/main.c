@@ -178,7 +178,7 @@ int main(void)
     xTaskCreate(
         smk_keymap_task, // pxTaskCode
         "KeyMap Task",   // pcName
-        512,             // usStackDepth
+        768,             // usStackDepth
         map,             // pvParameters
         15,              // uxPriority
         NULL             // pxCreatedTask
