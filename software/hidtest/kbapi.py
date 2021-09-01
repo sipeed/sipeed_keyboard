@@ -28,6 +28,7 @@ class keyboard_ctl:
         self.hidruning = False
         self.isdeviceoen = False
         self.lock=threading.Lock()
+        self.thid = threading.Thread(target=self.hidthread)
 
     def newpackage(self, reportid, packageid, addr, len):
         buffer = bytearray(8)
@@ -75,23 +76,27 @@ class keyboard_ctl:
                 time.sleep(0.001)
                 wait -= 1
             if wait == 0:
-                self.lock.release()
+                if self.lock.locked():
+                    self.lock.release()
                 return -1
             else:
                 datain = self.inputdatas.get()
                 reportid, retlen, packageid, retaddr = struct.unpack(self.Report_HEADER_Format, bytearray(datain[0:8]))
                 if packageid != self.getretid():
                     # print('pkgid error')
-                    self.lock.release()
+                    if self.lock.locked():
+                        self.lock.release()
                     return -2
                 # else:
                     # print('succeed')
                 if (retlen != datatosent):
-                    self.lock.release()
+                    if self.lock.locked():
+                        self.lock.release()
                     return -3
             datasize -= datatosent
             datapoint += datatosent
-        self.lock.release()
+        if self.lock.locked():
+            self.lock.release()
         return datasize
 
     def readdata(self, addr, len: int):
@@ -112,24 +117,28 @@ class keyboard_ctl:
                 time.sleep(0.001)
                 wait -= 1
             if wait == 0:
-                self.lock.release()
+                if self.lock.locked():
+                    self.lock.release()
                 return -1, retdata
             else:
                 datain = self.inputdatas.get()
                 reportid, retlen, packageid, retaddr = struct.unpack(self.Report_HEADER_Format, bytearray(datain[0:8]))
                 if packageid != self.totalpackageid:
                     # print('pkgid error')
-                    self.lock.release()
+                    if self.lock.locked():
+                        self.lock.release()
                     return -2, retdata
                 # else:
                 #     print('succeed')
                 if (retlen != datatoget):
-                    self.lock.release()
+                    if self.lock.locked():
+                        self.lock.release()
                     return -3, retdata
                 retdata += bytearray(datain[8:8 + retlen])
             datasize -= datatoget
             datapoint += datatoget
-        self.lock.release()
+        if self.lock.locked():
+            self.lock.release()
         return datapoint, retdata
 
     def hidthread(self):
@@ -171,12 +180,18 @@ class keyboard_ctl:
                         break
 
     def init_hid_interface(self):
+        if self.thid.is_alive():
+            self.stop_and_wait()
+            self.thid = threading.Thread(target=self.hidthread)
         self.hidruning = True
-        self.thid = threading.Thread(target=self.hidthread)
         self.thid.start()
     def stop_and_wait(self):
         self.hidruning =False
-        self.thid.join()
+        self.isdeviceoen=False
+        if self.thid.is_alive():
+            self.thid.join()
+        self.thid = threading.Thread(target=self.hidthread)
+
     def wait_for_kb(self,timeout=0):
         timesecond=timeout/1000;
         while not self.isdeviceoen:
