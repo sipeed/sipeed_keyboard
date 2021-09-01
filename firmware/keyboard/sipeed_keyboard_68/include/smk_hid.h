@@ -66,7 +66,7 @@
     0x91, 0x02,                      /*OUTPUT (Data,Var,Abs)*/\
     0xc0,                           /*END_COLLECTION*/
 
-#define NKRO_KAYBOARD_DR_SIZE (57-18)
+#define NKRO_KAYBOARD_DR_SIZE 57
 #define NKRO_KAYBOARD_RD(...) \
     0x05, 0x01, /*USAGE_PAGE (Generic Desktop)*/\
     0x09, 0x06, /*USAGE (Keyboard)*/\
@@ -80,15 +80,15 @@
     0x75, 0x01, /*REPORT_SIZE (1)*/\
     0x95, 0x08, /*REPORT_COUNT (8)*/\
     0x81, 0x02, /*INPUT (Data,Var,Abs)*/\
-    /*0x95, 0x05,*/ /*REPORT_COUNT (5)*/\
-    /*0x75, 0x01,*/ /*REPORT_SIZE (1)*/\
-    /*0x05, 0x08,*/ /*USAGE_PAGE (LEDs)*/\
-    /*0x19, 0x01,*/ /*USAGE_MINIMUM (Num Lock)*/\
-    /*0x29, 0x05,*/ /*USAGE_MAXIMUM (Kana)*/\
-    /*0x91, 0x02,*/ /*OUTPUT (Data,Var,Abs)*/\
-    /*0x95, 0x01,*/ /*REPORT_COUNT (1)*/\
-    /*0x75, 0x03,*/ /*REPORT_SIZE (3)*/\
-    /*0x91, 0x03,*/ /*OUTPUT (Cnst,Var,Abs)*/\
+    0x95, 0x05, /*REPORT_COUNT (5)*/\
+    0x75, 0x01, /*REPORT_SIZE (1)*/\
+    0x05, 0x08, /*USAGE_PAGE (LEDs)*/\
+    0x19, 0x01, /*USAGE_MINIMUM (Num Lock)*/\
+    0x29, 0x05, /*USAGE_MAXIMUM (Kana)*/\
+    0x91, 0x02, /*OUTPUT (Data,Var,Abs)*/\
+    0x95, 0x01, /*REPORT_COUNT (1)*/\
+    0x75, 0x03, /*REPORT_SIZE (3)*/\
+    0x91, 0x03, /*OUTPUT (Cnst,Var,Abs)*/\
     0x05, 0x07, /*USAGE_PAGE (Keyboard)*/\
     0x15, 0x00, /*LOGICAL_MINIMUM (0)*/\
     0x25, 0x01, /*LOGICAL_MAXIMUM (1)*/\
