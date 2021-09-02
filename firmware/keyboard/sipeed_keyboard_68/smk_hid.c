@@ -8,6 +8,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
+#include "timers.h"
 
 #include "keyboard/smk_event.h"
 #include "keyboard/smk_keycode.h"
@@ -19,9 +20,13 @@ volatile int current_nkro_interface =NKRO_REPORT_ID;
 
 static atomic_t kb_isupdate=0;
 static int kb_idle=0;
+static int kb_idle_dur=0;
+static atomic_t kb_report_update=0;
 static int use_nkro=0;
 int kb_configured=0;
 int force_basic_keyboard=0;
+
+TimerHandle_t hid_timer;
 
 static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
     STANDERD_KAYBOARD_RD()
@@ -134,8 +139,11 @@ void usbd_hid_kb_int_callback(uint8_t ep)
     times[0]++;
     if(use_nkro&&!force_basic_keyboard)
         return;
-    if((!kb_idle)||atomic_set(&kb_isupdate,0))
+    if((!kb_idle&&kb_report_update)||atomic_set(&kb_isupdate,0)){
+        kb_report_update=0;
         usbd_ep_write(HID_KB_INT_EP,hid_usb.buf[hid_usb.flag] , 8, NULL);
+        //USBD_LOG_DBG("times:%u,%u,%u,%u\r\n",times[0],times[1],times[2],times[3]);
+    }
 }
 void usbd_hid_nkro_int_callback(uint8_t ep)
 {
@@ -219,7 +227,13 @@ void nkro_set_idle_callback(uint8_t reportid, uint8_t duration){
 
 void kb_set_idle_callback(uint8_t reportid, uint8_t duration){
     USBD_LOG_DBG("kb_set_idle_callback:%d,%d\r\n",reportid,duration);
+    USBD_LOG_DBG("kb_set_idle:%dms\r\n",duration*4);
     kb_idle=duration==0;
+    kb_idle_dur=duration*4;
+    if(duration==0)
+        xTimerChangePeriod(hid_timer,portMAX_DELAY,portMAX_DELAY);
+    else
+        xTimerChangePeriod(hid_timer,pdMS_TO_TICKS(kb_idle_dur),portMAX_DELAY);
 }
 
 void smk_reset_callback(){
@@ -233,11 +247,20 @@ void smk_configured_callback(){
     kb_configured=1;
 }
 
+static void smk_hidreport_update(TimerHandle_t xTimer)
+{
+    kb_report_update=1;
+}
+void kb_set_protocol_callback(uint8_t protocal)
+{
+    USBD_LOG_DBG("kb_set_protocol_callback:switch to nkro mode\r\n");
+    use_nkro=protocal;
+}
 void smk_hid_usb_init()
 {
     usbd_hid_add_interface(&hid_class, &hid_intf_kb);
     usbd_interface_add_endpoint(&hid_intf_kb, &hid_kb_in_ep);
-    usbd_hid_callback_register(hid_intf_kb.intf_num,keyboard_led_cb,NULL,kb_set_idle_callback,NULL,NULL,NULL,smk_reset_callback,smk_configured_callback);
+    usbd_hid_callback_register(hid_intf_kb.intf_num,keyboard_led_cb,NULL,kb_set_idle_callback,NULL,NULL,kb_set_protocol_callback,smk_reset_callback,smk_configured_callback);
     usbd_hid_report_descriptor_register(hid_intf_kb.intf_num, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE);
 
     usbd_hid_add_interface(&hid_class, &hid_intf_data);
@@ -247,10 +270,26 @@ void smk_hid_usb_init()
 
     usbd_hid_add_interface(&hid_class, &hid_intf_nkro);
     usbd_interface_add_endpoint(&hid_intf_nkro, &hid_nkro_in_ep);
-    usbd_hid_callback_register(hid_intf_nkro.intf_num,keyboard_led_cb,NULL,nkro_set_idle_callback,NULL,NULL,NULL,smk_reset_callback,NULL);
+    usbd_hid_callback_register(hid_intf_nkro.intf_num,keyboard_led_cb,NULL,nkro_set_idle_callback,NULL,NULL,kb_set_protocol_callback,smk_reset_callback,NULL);
     usbd_hid_report_descriptor_register(hid_intf_nkro.intf_num, hid_nkro_report_desc, HID_NKRO_REPORT_DESC_SIZE);
 
     hid_data_protocol_init();
+
+    // Set daemon task to handle keyscan periodically
+    hid_timer = xTimerCreate(
+            "hid report timer",                              // pcTimerName
+            pdMS_TO_TICKS(1), // xTimerPeriodInTicks
+            pdTRUE,                                             // uxAutoReload
+            xTaskGetCurrentTaskHandle(),                        // pvTimerID
+            smk_hidreport_update                          // pxCallbackFunction
+    );
+
+    // Start timer
+    xTimerStart(
+            hid_timer,       // xTimer
+            portMAX_DELAY // xTicksToWait
+    );
+
 }
 
 void smk_usb_hid_daemon_task(void *pvParameters)

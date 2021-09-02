@@ -122,7 +122,7 @@ class keyboard_led:
 
     def play_frame_full(self, frame):
         frame = cv2.resize(frame, (128, int(self.keyh / self.keyw * 128)), interpolation=cv2.INTER_NEAREST)
-        self.play_frame(frame)
+        return self.play_frame(frame)
 
     def play_frame(self, frame):
         xsize = frame.shape[1]
@@ -165,6 +165,7 @@ class keyboard_led:
             colordata += struct.pack('BBBB', int(colorb), int(colorg), int(colorr), 0)
             keyid += 1
         self.kb.writedata(0x9000, colordata)
+        return colordata
     def switchmode(self,mode:int):
         self.kb.writedata(0x8000, struct.pack('I', mode))
     def getled(self):
