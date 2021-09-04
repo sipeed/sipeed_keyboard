@@ -5,20 +5,28 @@
 
 #define SMK_RGB_USE_DMA
 
+#define RGB_LENGTH 68
+
 enum rgb_mode_t{
- RGB_MODE_AOFF =0,
- RGB_MODE_BON ,
- RGB_MODE_AFLOW,
- RGB_MODE_BFLOW,
- RGB_MODE_AON,
- RGB_MODE_AONR,
- RGB_MODE_AONG,
- RGB_MODE_AONB,
+	RGB_MODE_AOFF = 0,
+	RGB_MODE_BON,
+	RGB_MODE_AFLOW,
+	RGB_MODE_BFLOW,
+	RGB_MODE_AON,
+	RGB_MODE_AONR,
+	RGB_MODE_AONG,
+	RGB_MODE_AONB,
     RGB_MODE_COUNT
 };
 
-
 extern int rgb_mode;
+
+enum rgb_blend_t {
+	RGB_BLEND_OVERWRITE = 0,
+	RGB_BLEND_ADDITIVE,
+	RGB_BLEND_ALPHA_BEGIN
+};
+#define RGB_BLEND_ALPHA(x) (x)
 
 // Frame format
 // Each uint32_t => 8b color channel
@@ -52,29 +60,43 @@ typedef struct {
 	};
 } DRGB;
 
+// key sequence described by constants / defines
 typedef struct {
 	int16_t xpos;
 	int16_t ypos;
-	uint8_t keyseq;
+	uint8_t scanseq;
 	uint8_t keycode;
-	uint8_t sequp;
-	uint8_t seqdown;
-	uint8_t seqleft;
-	uint8_t seqright;
-} KEY_DESC;
-// key sequence described by cosntants / defines
+	uint8_t keyleft;
+	uint8_t keyright;
+} RGB_KEY_DESC;
+extern const RGB_KEY_DESC rgb_key_descriptor[RGB_LENGTH]; 
 
-// Effect list in memory
+// Effect list in memory / flash
 typedef struct {
 	uint16_t eff_id;
-	uint8_t eff_mask;
+	uint16_t color_id;
+	uint8_t mask_id;
+	uint8_t blend_type;
 	uint8_t eff_next;
-	void *eff_data;
-	void (*eff_func)(void *);
+	uint8_t eff_rsvd;
 	uint32_t eff_var[5];
-} EFF_NODE;
+} RGB_EFF_NODE;
+extern RGB_EFF_NODE rgb_effect_list_fixed[]; 
 
-#define RGB_LENGTH 68
+// Effect descriptor in flash
+typedef struct {
+	void (*eff_func)(RGB_EFF_NODE *, uint32_t);
+	void (*keyhandler_func)(void *);
+} RGB_EFF_DESC;
+extern RGB_EFF_DESC rgb_effect_descriptor[]; 
+
+// Color descriptor in flash
+
+typedef struct RGB_COLOR_DESC {
+	DRGB (*color_func)(struct RGB_COLOR_DESC *, uint16_t);
+	uint32_t func_data[3];
+} RGB_COLOR_DESC;
+extern RGB_COLOR_DESC rgb_color_descriptor[]; 
 
 void rgb_loop_task(void *pvParameters);
 
