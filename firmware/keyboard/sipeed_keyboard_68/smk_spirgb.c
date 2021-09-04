@@ -102,6 +102,7 @@ static const hid_data_reg_t ledreg={
     .maptype=map_type_data,
     .datatype=data_type_fixed
 };
+
 void rgb_loop_task(void *pvParameters)
 {
     struct device *spi, *dma_ch3;
@@ -125,9 +126,26 @@ void rgb_loop_task(void *pvParameters)
     hid_data_protocal_reg(&modereg);
     hid_data_protocal_reg(&ledreg);
 
+	uint32_t timestamp = 0;
+
 	j = 0;
 	for (;;) {
 		vTaskDelay(10);
+
+		if (rgb_mode < RGB_MODE_COUNT) {
+			
+			for (i = 0; i < RGB_LENGTH; i++) {
+				RGB_Buffer[i].word = 0;
+			}
+
+			RGB_EFF_NODE *ceff = rgb_effect_list_fixed + 0;
+			int ceffid = ceff->eff_id;
+			rgb_effect_descriptor[ceffid].eff_func(ceff, timestamp);
+		}
+		
+		timestamp ++;
+
+		/*
         if(rgb_mode<RGB_MODE_COUNT)
 		for (i = 0; i < RGB_LENGTH; i++) {
 			switch (rgb_mode) {
@@ -163,6 +181,7 @@ void rgb_loop_task(void *pvParameters)
                 break;
 			}
 		}
+		*/
 
 #ifdef SMK_RGB_USE_DMA
 		RGB_DMA_Transmit(spi, dma_ch3, RGB_Buffer);

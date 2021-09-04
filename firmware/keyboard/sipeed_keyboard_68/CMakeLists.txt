@@ -10,6 +10,9 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/smk_msc.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_shell.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_spirgb.c
+                         ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_color.c
+                         ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_effect.c
+                         ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_layout.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_hid_protocol.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_keyscan.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_keymap.c
@@ -19,6 +22,8 @@ set(TARGET_REQUIRED_SRCS
                          ${BSP_COMMON_DIR}/usb/usb_dc.c
                          ${BSP_COMMON_DIR}/usb/uart_interface.c
                          ${BSP_COMMON_DIR}/spi_sd/bsp_spi_sd.c)
+
+list(APPEND TARGET_REQUIRED_SRCS ${CMAKE_CURRENT_LIST_DIR}/config/smk_rgb_config.c)
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/config/custom/custom_keycode.c)
     list(APPEND TARGET_REQUIRED_SRCS ${CMAKE_CURRENT_LIST_DIR}/config/custom/custom_keycode.c)
