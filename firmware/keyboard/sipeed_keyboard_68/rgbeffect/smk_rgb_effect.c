@@ -59,7 +59,7 @@ uint32_t rgb_fxsqrt(uint32_t x)
         if (32767 > ydiff && ydiff > -32768) {
             break;
         }
-        ynp = yn;
+        yn = ynp;
     }
 
     return ynp;
@@ -133,8 +133,8 @@ void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
     uint32_t speed = node->eff_var[0];
     uint32_t xscale = ((node->eff_var[1] >> 16) & 0xFFFF) << 8;
     uint32_t yscale = (node->eff_var[1] & 0xFFFF) << 8;
-    uint32_t xcenter = ((node->eff_var[2] >> 17) & 0x7FFF) << 9;
-    uint32_t ycenter = ((node->eff_var[2] >> 2) & 0x7FFF) << 9;
+    uint32_t xcenter = ((node->eff_var[2] >> 17) & 0x7FFF) << 1;
+    uint32_t ycenter = ((node->eff_var[2] >> 2) & 0x7FFF) << 1;
     int distance_method = node->eff_var[2] & 0x3;
 
     uint32_t timescale = (node->eff_var[3] >> 16) & 0xFFFF;
@@ -153,8 +153,9 @@ void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
 
     for (int i = 0; i < RGB_LENGTH; i++) {
         // Get x, y distance
-        horiz_pos = (xscale * rgb_abs(rgb_key_descriptor[i].xpos - xcenter) ) >> 16;
-        vert_pos  = (yscale * rgb_abs(rgb_key_descriptor[i].ypos - ycenter) ) >> 16;
+        // key positions are recorded in 8.8
+        horiz_pos = (xscale * rgb_abs((int16_t)(rgb_key_descriptor[i].xpos - xcenter)) ) >> 8;
+        vert_pos  = (yscale * rgb_abs((int16_t)(rgb_key_descriptor[i].ypos - ycenter)) ) >> 8;
         // Calculate pos value
         dist_value = rgb_mixdistance(horiz_pos, vert_pos, distance_method);
         color_pos = ((dist_value * distscale) >> 8)
