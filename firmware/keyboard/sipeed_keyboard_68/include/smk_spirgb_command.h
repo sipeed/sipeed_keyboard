@@ -23,7 +23,7 @@ uint32_t rgb_cmd_htoi(char * val)
 
 int rgbdemo(int argc, char *argv[])
 {
-    if (argc == 2 && '0' <= argv[1][0] && argv[1][0] <= '7') {
+    if (argc == 2 && '0' <= argv[1][0] && argv[1][0] <= '9') {
         rgb_mode = argv[1][0] - '0';
         acm_printf("RGB LED Demo mode %d\r\n", rgb_mode);
         return 0;

@@ -96,6 +96,7 @@ void RGB_Effect_Fixed(RGB_EFF_NODE *node, uint32_t timestamp)
 
 // eff_var[0] = 16.16 color shifting speed
 // eff_var[1] = 16.16 transparency shifting speed
+// eff_var[2] = 16.16 transparency offset
 void RGB_Effect_Breath(RGB_EFF_NODE *node, uint32_t timestamp)
 {
     RGB_COLOR_DESC *color = rgb_color_descriptor + node->color_id;
@@ -103,10 +104,11 @@ void RGB_Effect_Breath(RGB_EFF_NODE *node, uint32_t timestamp)
 
     uint32_t color_speed = node->eff_var[0];
     uint32_t transparency_speed = node->eff_var[1];
+    uint32_t transparency_offset = node->eff_var[2];
 
     DRGB recv_color = color_func(color, (timestamp * color_speed) >> 16);
 
-    uint32_t breath_step = ((timestamp * transparency_speed) >> 23) & 0x1FF;
+    uint32_t breath_step = ((timestamp * transparency_speed + transparency_offset) >> 23) & 0x1FF;
     uint32_t vvalue =  (breath_step >= 256) ? (511 - breath_step) : breath_step;
 
     recv_color = rgb_alpha(recv_color, vvalue);
