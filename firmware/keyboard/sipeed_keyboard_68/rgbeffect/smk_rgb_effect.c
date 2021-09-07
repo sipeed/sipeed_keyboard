@@ -178,3 +178,6 @@ void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
 
     // Remove self if all points inside visible ring (INOP)
 }
+
+//Test
+void test() {}
