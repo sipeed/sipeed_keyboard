@@ -6,7 +6,7 @@
 
 #define SHELL_HISTORY_LINES 5
 #define SHELL_CMD_SIZE      50
-#define SHELL_ARG_NUM       8
+#define SHELL_ARG_NUM       10
 
 //#define SHELL_USING_FS
 
