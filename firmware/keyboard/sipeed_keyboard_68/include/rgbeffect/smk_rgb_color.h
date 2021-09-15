@@ -12,5 +12,6 @@ enum rgb_color_list_t {
 DRGB RGB_Color_Rainbow(RGB_COLOR_DESC *desc, uint16_t colorpos);
 DRGB RGB_Color_Fixed(RGB_COLOR_DESC *desc, uint16_t colorpos);
 DRGB RGB_Color_Random(RGB_COLOR_DESC *desc, uint16_t colorpos);
+DRGB RGB_Color_Gradient(RGB_COLOR_DESC *desc, uint16_t colorpos);
 
 #endif

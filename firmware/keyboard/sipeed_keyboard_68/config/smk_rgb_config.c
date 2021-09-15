@@ -29,7 +29,11 @@ RGB_COLOR_DESC rgb_color_descriptor[] = {
     },
     {
         .color_func = RGB_Color_Random,
-        .func_data = {0}
+        .func_data = {0} 
+    },
+    {
+        .color_func = RGB_Color_Gradient,
+        .func_data = { 0xfc466b, 0x3f5efb } //配色方案可以去https://www.coocolors.com/browseGradient找
     }
 };
 
