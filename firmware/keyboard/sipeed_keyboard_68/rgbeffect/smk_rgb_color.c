@@ -92,3 +92,32 @@ DRGB RGB_Color_Fixed(RGB_COLOR_DESC *desc, uint16_t colorpos)
 DRGB RGB_Color_Random(RGB_COLOR_DESC *desc, uint16_t colorpos) {
     return hsv2rgb( (((uint64_t)rgb_lfsr(colorpos) * maxHue) >> 16) % maxHue, maxSaturation, maxValue);
 }
+
+// Two-color gradient color matching
+// func_data[0] -> Hue step value
+// func_data[1] -> Hue offset value
+DRGB RGB_Color_Gradient(RGB_COLOR_DESC *desc, uint16_t colorpos)
+{
+    DRGB *gradient_color_first = (DRGB *)&desc->func_data[0];
+    DRGB *gradient_color_second = (DRGB *)&desc->func_data[1];
+
+    DRGB gradient_color_rx;
+
+    if (colorpos <= 32768) {
+        gradient_color_rx.R = gradient_color_first->R +
+                              ((gradient_color_second->R - gradient_color_first->R) * colorpos) / 32768;
+        gradient_color_rx.G = gradient_color_first->G +
+                              ((gradient_color_second->G - gradient_color_first->G) * colorpos) / 32768;
+        gradient_color_rx.B = gradient_color_first->B +
+                              ((gradient_color_second->B - gradient_color_first->B) * colorpos) / 32768;
+    } else {
+        gradient_color_rx.R = gradient_color_second->R -
+                              ((gradient_color_second->R - gradient_color_first->R) * (colorpos-32768)) / 32768;
+        gradient_color_rx.G = gradient_color_second->G -
+                              ((gradient_color_second->G - gradient_color_first->G) * (colorpos-32768)) / 32768;
+        gradient_color_rx.B = gradient_color_second->B -
+                              ((gradient_color_second->B - gradient_color_first->B) * (colorpos-32768)) / 32768;
+    }
+
+    return gradient_color_rx;
+}
