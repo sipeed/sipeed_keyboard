@@ -991,3 +991,32 @@ QSizeGrip
 	border: none;
 
 }
+
+/*-----QTabWidget-----*/
+
+QTabBar::tab {
+	background-color: #051a39;
+	border-top-left-radius:4px;
+	border-top-right-radius:4px;
+	width: 80px;
+	height: 20px;
+	padding:2px;
+}
+
+/* 标签被选中时或鼠标悬浮时 */
+QTabBar::tab:selected,QTabBar::tab:hover {
+	background-color: gray;
+	color: white;
+}
+
+/* 标签被选中时 */
+QTabBar::tab:selected {
+	background-color: #4891b4;
+	color: #ffffff;
+}
+
+/*-----QTextEdit-----*/
+QTextEdit{
+	background-color: #222222;
+	color: white;
+}
