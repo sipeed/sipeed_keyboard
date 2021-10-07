@@ -5,8 +5,8 @@
 #define SHELL_CONSOLEBUF_SIZE 128
 
 #define SHELL_HISTORY_LINES 5
-#define SHELL_CMD_SIZE      50
-#define SHELL_ARG_NUM       10
+#define SHELL_CMD_SIZE      128
+#define SHELL_ARG_NUM       12
 
 //#define SHELL_USING_FS
 
