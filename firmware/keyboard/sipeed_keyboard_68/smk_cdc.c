@@ -1,7 +1,7 @@
 #include "smk_cdc.h"
 #include "smk_shell.h"
-#include "usbd_cdc.h"
 #include "usbd_core.h"
+#include "usbd_cdc.h"
 #include "hal_usb.h"
 #include "stdint.h"
 
