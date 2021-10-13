@@ -12,7 +12,8 @@ enum rgb_effect_list_t {
 enum rgb_distance_mode_t {
     RGB_DISTANCE_MANHATTAN = 0,
     RGB_DISTANCE_MAXIMUM,
-    RGB_DISTANCE_SQRT
+    RGB_DISTANCE_SQRT,
+    RGB_DISTANCE_LFSR
 };
 
 void RGB_Effect_Fixed(RGB_EFF_NODE *node, uint32_t timestamp);
