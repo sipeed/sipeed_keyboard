@@ -26,7 +26,7 @@
 #include "bl702.h"
 #include "smk_ble.h"
 #include "smk_usb.h"
-#include "smk_shell.h"
+#include "shell.h"
 #include "smk_command.h"
 #include "smk_spirgb.h"
 #include "smk_spirgb_command.h"
@@ -144,6 +144,9 @@ int main(void)
 
     bflb_platform_init(0);
     shell_init();
+    shell_set_prompt(SHELL_NAME);
+    shell_set_print(acm_printf);
+
     MSG("Sipeed Machine Keyboard start...\r\n");
     // HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
 
