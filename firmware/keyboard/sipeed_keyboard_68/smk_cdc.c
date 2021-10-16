@@ -1,5 +1,5 @@
 #include "smk_cdc.h"
-#include "smk_shell.h"
+#include "shell.h"
 #include "usbd_core.h"
 #include "usbd_cdc.h"
 #include "hal_usb.h"
@@ -12,16 +12,16 @@ void usbd_cdc_acm_bulk_out(uint8_t ep)
 {
     uint32_t actual_read_length = 0;
     uint8_t out_buffer[64];
-    uint8_t data;
 
     if (usbd_ep_read(ep, out_buffer, 64, &actual_read_length) < 0) {
-        USBD_LOG_DBG("Read DATA Packet failed\r\n");
+        MSG("Read DATA Packet failed\r\n");
         usbd_ep_set_stall(ep);
         return;
     }
+    for (uint32_t i = 0; i < actual_read_length; i++) {
+        shell_handler(out_buffer[i]);
+    }
     usbd_ep_read(ep, NULL, 0, NULL);
-    data = *(uint8_t *)out_buffer;
-    shell_handler(data);
 }
 
 void usbd_cdc_acm_bulk_in(uint8_t ep)
@@ -41,6 +41,17 @@ usbd_endpoint_t cdc_in_ep = {
     .ep_addr = CDC_IN_EP,
     .ep_cb = NULL
 };
+
+void acm_printf(char *fmt, ...)
+{
+    char print_buf[64];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsnprintf(print_buf, sizeof(print_buf) - 1, fmt, ap);
+    va_end(ap);
+    usbd_ep_write(CDC_IN_EP, (uint8_t *)print_buf, strlen(print_buf), NULL);
+}
 
 void smk_cdc_init()
 {
