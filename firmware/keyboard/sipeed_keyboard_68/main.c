@@ -22,6 +22,7 @@
  */
 #include "hal_uart.h"
 #include <FreeRTOS.h>
+#include <zephyr.h>
 #include "semphr.h"
 #include "bl702.h"
 #include "smk_ble.h"
@@ -33,6 +34,9 @@
 
 #include "keyboard/smk_keyscan.h"
 #include "keyboard/smk_keymap.h"
+
+#include "smk_event_manager.h"
+#include "events/system_init_event.h"
 
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
@@ -121,6 +125,19 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackT
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
+static void raise_event()
+{
+    MSG("[SMK main] raise_event \n");
+
+    // static sturct system_init_event new_system_init_event = {.data = 0xaa};
+
+    SMK_EVENT_RAISE(new_system_init_event((struct system_init_event)
+    {
+        .data = 0xa0
+    }
+    ));
+}
+
 static void ble_init_task(void *pvParameters)
 {
     ble_init();
@@ -129,30 +146,80 @@ static void ble_init_task(void *pvParameters)
 
 static void usb_init_task(void *pvParameters) //FIXME
 {
+    // MSG("[SMK] usb init task\n");
     usb_init();
+    // MSG("[SMK] usb init finish\n");
+    // raise_event();
+    // while (1)
+    // {
+    //     // vTaskDelay(1000);
+    // }
     vTaskDelete(NULL);
 }
 
+
+
+static void raise_event_callback(struct k_work *work){
+    raise_event();
+}
+K_WORK_DEFINE(raise_event_work, raise_event_callback);
+int init_event_listener(const smk_event_t *eh){
+    const struct system_init_event *ev = as_system_init_event(eh);
+    if (ev)
+    {
+        MSG("[EVENT]: system init. 0x%x\n", ev->data);
+    }
+    return 0;
+}
+SMK_LISTENER(init_event_listener, init_event_listener);
+SMK_SUBSCRIPTION(init_event_listener, system_init_event);
+
 int main(void)
 {
-    // static StackType_t ble_init_stack[1024];
-    // static StaticTask_t ble_init_task_h;
     static StackType_t usb_init_stack[512];
     static StaticTask_t usb_init_task_h;
-    static StackType_t rgb_loop_stack[1024];
-    static StaticTask_t rgb_loop_task_h;
-
     bflb_platform_init(0);
     shell_init();
     MSG("Sipeed Machine Keyboard start...\r\n");
     // HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
-
+    
     vPortDefineHeapRegions(xHeapRegions);
 
     MSG("[SMK] Device init...\r\n");
     // xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
-    xTaskCreateStatic(usb_init_task, (char *)"usb_init", sizeof(usb_init_stack) / 4, NULL, 15, usb_init_stack, &usb_init_task_h);
-    xTaskCreateStatic(rgb_loop_task, (char *)"rgb_loop", sizeof(rgb_loop_stack) / 4, NULL, 15, rgb_loop_stack, &rgb_loop_task_h);
+    // k_work_submit(&raise_event_work);
+
+    // xTaskCreate(   
+    //     TestThread, 
+    //     (char *)"test",
+    //     1000,
+    //     NULL,
+    //     15,
+    //     NULL);
+    xTaskCreateStatic(
+        usb_init_task, 
+        (char *)"usb_init", 
+        sizeof(usb_init_stack) / 4, 
+        NULL, 
+        configMAX_PRIORITIES - 2, 
+        usb_init_stack, 
+        &usb_init_task_h);
+
+    // xTaskCreate( 
+    //     usb_init_task, 
+    //     (char *)"usb_init", 
+    //     256, 
+    //     NULL, 
+    //     configMAX_PRIORITIES - 2, 
+    //     NULL);
+
+    xTaskCreate(
+        rgb_loop_task, 
+        (char *)"rgb_loop", 
+        256, 
+        NULL, 
+        configMAX_PRIORITIES - 2, 
+        NULL);
 
     const smk_keyboard_hardware_type *hardware = smk_keyboard_get_hardware();
     QueueHandle_t queue_keypos = xQueueCreate(
@@ -172,7 +239,7 @@ int main(void)
         "KeyScan Task",   // pcName
         512,              // usStackDepth
         scan,             // pvParameters
-        15,               // uxPriority
+        configMAX_PRIORITIES - 2,               // uxPriority
         NULL              // pxCreatedTask
     );
     xTaskCreate(
@@ -180,7 +247,7 @@ int main(void)
         "KeyMap Task",   // pcName
         768,             // usStackDepth
         map,             // pvParameters
-        15,              // uxPriority
+        configMAX_PRIORITIES - 2,   // uxPriority
         NULL             // pxCreatedTask
     );
     xTaskCreate(
@@ -188,7 +255,7 @@ int main(void)
         "USB HID Task",          // pcName
         256,                     // usStackDepth
         queue_keycode,           // pvParameters
-        15,                      // uxPriority
+        configMAX_PRIORITIES - 2,    // uxPriority
         NULL                     // pxCreateTask
     );
     MSG("[SMK] Start task scheduler...\r\n");

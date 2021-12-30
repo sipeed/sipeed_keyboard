@@ -25,7 +25,8 @@ MEMORY
 {
     xip_memory  (rx)  : ORIGIN = 0x23000000, LENGTH = 1024K
     itcm_memory (rx)  : ORIGIN = 0x22014000, LENGTH = 16K
-    dtcm_memory (rx)  : ORIGIN = 0x42018000, LENGTH = 32K
+    dtcm_memory (rx)  : ORIGIN = 0x42018000, LENGTH = 16K
+    ram3_memory (!rx) : ORIGIN = 0x4201C000, LENGTH = 16K
     ram_memory  (!rx) : ORIGIN = 0x42020000, LENGTH = 32K
     rsvd_memory (!rx) : ORIGIN = 0x42028000, LENGTH = 1K
     ram2_memory (!rx) : ORIGIN = 0x42028400, LENGTH = (31K - __EM_SIZE)
@@ -42,11 +43,6 @@ SECTIONS
 
         KEEP (*(.text.metal.init.enter))
         KEEP (*(SORT_NONE(.init)))
-        /* section information for finsh shell */
-        /*. = ALIGN(4);
-        _shell_command_start = .;
-        KEEP(*(shellCommand))
-        _shell_command_end = .;*/
         /* section information for shell */
         . = ALIGN(4);
         __fsymtab_start = .;
@@ -57,7 +53,7 @@ SECTIONS
         __vsymtab_start = .;
         KEEP(*(VSymTab))
         __vsymtab_end = .;
-        
+
         /* section information for usb desc */
         . = ALIGN(4);
         _usb_desc_start = .;
@@ -65,18 +61,32 @@ SECTIONS
         . = ALIGN(4);
         _usb_desc_end = .;
 
+        /* section information for event manager */
+        . = ALIGN(4);
+        __event_type_start = .; 
+        KEEP(*(".event_type")); 
+        __event_type_end = .; 
+        . = ALIGN(4);
+        __event_subscriptions_start = .; 
+        KEEP(*(".event_subscription")); 
+        __event_subscriptions_end = .; 
+
         *(.text)
         *(.text.*)
 
         /*put .rodata**/
-        *(EXCLUDE_FILE( *bl702_glb.o \
-                        *bl702_pds.o \
-                        *bl702_common.o \
-                        *bl702_sf_cfg.o \
-                        *bl702_sf_ctrl.o \
-                        *bl702_sflash.o \
-                        *bl702_xip_sflash.o \
-                        *bl702_ef_ctrl.o) .rodata*)
+        *(EXCLUDE_FILE( *bl702_glb*.o* \
+                        *bl702_pds*.o* \
+                        *bl702_common*.o* \
+                        *bl702_sf_cfg*.o* \
+                        *bl702_sf_cfg_ext*.o* \
+                        *bl702_sf_ctrl*.o* \
+                        *bl702_sflash*.o* \
+                        *bl702_sflash_ext*.o* \
+                        *bl702_xip_sflash*.o* \
+                        *bl702_xip_sflash_ext*.o* \
+                        *bl702_ef_ctrl*.o*) .rodata*)
+
         *(.rodata)
         *(.rodata.*)
 
@@ -102,19 +112,22 @@ SECTIONS
         . = ALIGN(4);
         __tcm_code_start__ = .;
 
-        *(.tcm_code)
-        *(.tcm_const)
-        *(.sclock_rlt_code)
-        *(.sclock_rlt_const)
+        *(.tcm_code.*)
+        *(.tcm_const.*)
+        *(.sclock_rlt_code.*)
+        *(.sclock_rlt_const.*)
 
-        *bl702_glb.o*(.rodata*)
-        *bl702_pds.o*(.rodata*)
-        *bl702_common.o*(.rodata*)
-        *bl702_sf_cfg.o*(.rodata*)
-        *bl702_sf_ctrl.o*(.rodata*)
-        *bl702_sflash.o*(.rodata*)
-        *bl702_xip_sflash.o*(.rodata*)
-        *bl702_ef_ctrl.o*(.rodata*)
+        *bl702_glb*.o*(.rodata*)
+        *bl702_pds*.o*(.rodata*)
+        *bl702_common*.o*(.rodata*)
+        *bl702_sf_cfg*.o*(.rodata*)
+        *bl702_sf_cfg_ext*.o*(.rodata*)
+        *bl702_sf_ctrl*.o*(.rodata*)
+        *bl702_sflash*.o*(.rodata*)
+        *bl702_sflash_ext*.o*(.rodata*)
+        *bl702_xip_sflash*.o*(.rodata*)
+        *bl702_xip_sflash_ext*.o*(.rodata*)
+        *bl702_ef_ctrl*.o*(.rodata*)
 
         . = ALIGN(4);
         __tcm_code_end__ = .;
@@ -245,6 +258,10 @@ SECTIONS
 
     PROVIDE( _heap_start = ORIGIN(ram2_memory) );
     PROVIDE( _heap_size = LENGTH(ram2_memory) );
+
+    PROVIDE( _heap2_start = ORIGIN(ram3_memory) );
+    PROVIDE( _heap2_size = LENGTH(ram3_memory) );
+
 
 }
 

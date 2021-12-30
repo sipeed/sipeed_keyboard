@@ -10,6 +10,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/smk_msc.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_shell.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_spirgb.c
+                         ${CMAKE_CURRENT_LIST_DIR}/smk_event_manager.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_color.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_effect.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_layout.c
@@ -19,6 +20,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_tapengine.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_defer_g.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_eager_defer_pk.c
+                         ${CMAKE_CURRENT_LIST_DIR}/events/system_init_event.c
                          ${BSP_COMMON_DIR}/usb/usb_dc.c
                          ${BSP_COMMON_DIR}/usb/uart_interface.c
                          ${BSP_COMMON_DIR}/spi_sd/bsp_spi_sd.c)

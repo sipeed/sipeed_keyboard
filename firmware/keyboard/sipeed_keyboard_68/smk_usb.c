@@ -210,6 +210,6 @@ void usb_init(){ //task init
     while (!usb_device_is_configured()) {
     }
 
-    while (1) {
-    }
+    // while (1) {
+    // }
 }
