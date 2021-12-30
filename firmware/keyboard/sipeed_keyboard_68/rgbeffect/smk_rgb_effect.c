@@ -1,4 +1,5 @@
 #include "smk_spirgb.h"
+#include "rgbeffect/smk_rgb_color.h"
 #include "rgbeffect/smk_rgb_effect.h"
 
 DRGB rgb_alpha(DRGB source, uint8_t alpha)
@@ -45,6 +46,16 @@ int rgb_abs(int x)
     return (x > 0) ? x : (-x);
 }
 
+uint32_t rgb_fxp16mul(uint32_t a, uint32_t b)
+{
+    uint32_t rval;
+    rval = ((a & 0xFFFF) * (b & 0xFFFF)) >> 16;
+    rval += (a >> 16) * (b & 0xFFFF);
+    rval += (a & 0xFFFF) * (b >> 16);
+    rval += ((a >> 16) * (b >> 16)) & 0xFFFF;
+    return rval;
+}
+
 uint32_t rgb_fxsqrt(uint32_t x)
 {
     uint64_t xdiv2 = x << 15;
@@ -74,6 +85,8 @@ uint32_t rgb_mixdistance(uint32_t xdist, uint32_t ydist, int mode)
         return (xdist > ydist) ? xdist : ydist;
     case RGB_DISTANCE_SQRT:
         return rgb_fxsqrt(((xdist * xdist) >> 16) + ((ydist * ydist) >> 16));
+    case RGB_DISTANCE_LFSR:
+        return rgb_lfsr(xdist ^ ydist);
     }
     return 0;
 }
@@ -87,6 +100,7 @@ void RGB_Effect_Fixed(RGB_EFF_NODE *node, uint32_t timestamp)
     DRGB (*color_func)(RGB_COLOR_DESC *, uint16_t) = color->color_func;
 
     uint32_t speed = node->eff_var[0];
+    // Warning: multiplication wraps around 2^16
     DRGB recv_color = color_func(color, (timestamp * speed) >> 16);
 
     for (int i = 0; i < RGB_LENGTH; i++) {
@@ -106,6 +120,7 @@ void RGB_Effect_Breath(RGB_EFF_NODE *node, uint32_t timestamp)
     uint32_t transparency_speed = node->eff_var[1];
     uint32_t transparency_offset = node->eff_var[2];
 
+    // Warning: multiplication wraps around 2^16
     DRGB recv_color = color_func(color, (timestamp * color_speed) >> 16);
 
     uint32_t breath_step = ((timestamp * transparency_speed + transparency_offset) >> 23) & 0x1FF;
@@ -120,10 +135,10 @@ void RGB_Effect_Breath(RGB_EFF_NODE *node, uint32_t timestamp)
 
 // eff_var[0] = 16.16 time-value shifting speed
 // eff_var[1] = [31:16] 8.8 x shifting scale [15:0] 8.8 y shifting scale
-// eff_var[2] = [31:17] 8.7 center point x [16:2] 8.7 center point y [1:0] distance method
-//                0 -> manhattan(diamond) 1 -> maximum(rectangle) 2 -> sqrt(circle)
+// eff_var[2] = [31:17] 7.8 center point x [16:2] 7.8 center point y [1:0] distance method
+//                0 -> manhattan(diamond) 1 -> maximum(rectangle) 2 -> sqrt(circle) 3 -> lfsr(randomized)
 // eff_var[3] = [31:16] 8.8 time to color [15:0] 8.8 distance to color
-// eff_var[4] = [31:16] 8.8 center point [15:8] 4.4 center width [7:1] 3.4 fade width [0] removal - INOP
+// eff_var[4] = [31:20] 4.8 center point [19:10] 2.8 center width [9:1] 1.8 fade width [0] removal - INOP
 //                center point: posv + cdist == timev   __s/f-w-\f___
 void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
 {
@@ -133,18 +148,18 @@ void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
     uint32_t speed = node->eff_var[0];
     uint32_t xscale = ((node->eff_var[1] >> 16) & 0xFFFF) << 8;
     uint32_t yscale = (node->eff_var[1] & 0xFFFF) << 8;
-    uint32_t xcenter = ((node->eff_var[2] >> 17) & 0x7FFF) << 1;
-    uint32_t ycenter = ((node->eff_var[2] >> 2) & 0x7FFF) << 1;
+    uint32_t xcenter = ((node->eff_var[2] >> 17) & 0x7FFF);
+    uint32_t ycenter = ((node->eff_var[2] >> 2) & 0x7FFF);
     int distance_method = node->eff_var[2] & 0x3;
 
     uint32_t timescale = (node->eff_var[3] >> 16) & 0xFFFF;
     uint32_t distscale = node->eff_var[3] & 0xFFFF;
 
-    uint32_t center_point = ((node->eff_var[4] >> 16) & 0xFFFF) << 8;
-    uint32_t center_width = ((node->eff_var[4] >> 8) & 0xFF) << 12;
-    uint32_t fade_width = ((node->eff_var[4] >> 1) & 0x3F) << 12;
+    uint32_t center_point = ((node->eff_var[4] >> 20) & 0xFFFF) << 8;
+    uint32_t center_width = ((node->eff_var[4] >> 10) & 0x3FF) << 8;
+    uint32_t fade_width = ((node->eff_var[4] >> 1) & 0x1FF) << 8;
 
-    uint32_t time_value = (timestamp * speed) >> 16;
+    uint32_t time_value = rgb_fxp16mul(timestamp, speed);
     uint32_t dist_value;
 
     uint32_t horiz_pos, vert_pos;
@@ -169,7 +184,7 @@ void RGB_Effect_DistanceFlow(RGB_EFF_NODE *node, uint32_t timestamp)
             if (abscdist <= center_width) {
                 alphaval = 255;
             } else if (abscdist <= center_width + fade_width) {
-                alphaval = ((abscdist - center_width) * 255) / fade_width;
+                alphaval = 255 - ((abscdist - center_width) * 255) / fade_width;
             }
             recv_color = rgb_alpha(recv_color, alphaval);
         }

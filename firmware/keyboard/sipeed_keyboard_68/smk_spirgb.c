@@ -103,6 +103,8 @@ static const hid_data_reg_t ledreg={
     .datatype=data_type_fixed
 };
 
+uint32_t timestamp = 0;
+
 void rgb_loop_task(void *pvParameters)
 {
     struct device *spi, *dma_ch3;
@@ -126,7 +128,6 @@ void rgb_loop_task(void *pvParameters)
     hid_data_protocal_reg(&modereg);
     hid_data_protocal_reg(&ledreg);
 
-	uint32_t timestamp = 0;
 
 	j = 0;
 	for (;;) {
@@ -140,48 +141,11 @@ void rgb_loop_task(void *pvParameters)
 
 			RGB_EFF_NODE *ceff = rgb_effect_list_fixed + 0;
 			int ceffid = ceff->eff_id;
-			rgb_effect_descriptor[ceffid].eff_func(ceff, timestamp);
+			int ceffoffset = ceff->time_offset;
+			rgb_effect_descriptor[ceffid].eff_func(ceff, timestamp - ceffoffset);
 		}
 		
 		timestamp ++;
-
-		/*
-        if(rgb_mode<RGB_MODE_COUNT)
-		for (i = 0; i < RGB_LENGTH; i++) {
-			switch (rgb_mode) {
-			case RGB_MODE_AOFF:
-				RGB_Buffer[i].word = 0;
-				break;
-			case RGB_MODE_BON:
-				RGB_Buffer[i].word = ((j/5) % RGB_LENGTH == i) ? 0xFFFFFF : 0x000000;
-				break;
-			case RGB_MODE_AFLOW:
-				htemp = (j/512) % 7 + 1;
-				vtemp = (j % 512 >= 256) ? (511 - j) : j;
-				RGB_Buffer[i].R = (htemp & 0x01) ? vtemp : 0; 
-				RGB_Buffer[i].G = (htemp & 0x02) ? vtemp : 0; 
-				RGB_Buffer[i].B = (htemp & 0x04) ? vtemp : 0; 
-				break;
-			case RGB_MODE_BFLOW:
-				RGB_Buffer[i].word = 0x66CCFF - (i+j) - (i+j)*0x100 - (i+j)*0x10000;
-				break;
-			case RGB_MODE_AON:
-				RGB_Buffer[i].word = 0xFFFFFF;
-				break;
-			case RGB_MODE_AONR:
-				RGB_Buffer[i].word = 0xFF0000;
-				break;
-			case RGB_MODE_AONG:
-				RGB_Buffer[i].word = 0x00FF00;
-				break;
-			case RGB_MODE_AONB:
-				RGB_Buffer[i].word = 0x0000FF;
-				break;
-            default:
-                break;
-			}
-		}
-		*/
 
 #ifdef SMK_RGB_USE_DMA
 		RGB_DMA_Transmit(spi, dma_ch3, RGB_Buffer);

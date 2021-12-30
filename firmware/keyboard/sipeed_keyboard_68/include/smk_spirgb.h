@@ -79,6 +79,7 @@ typedef struct {
 	uint8_t blend_type;
 	uint8_t eff_next;
 	uint8_t eff_rsvd;
+	uint32_t time_offset;
 	uint32_t eff_var[5];
 } RGB_EFF_NODE;
 extern RGB_EFF_NODE rgb_effect_list_fixed[]; 
