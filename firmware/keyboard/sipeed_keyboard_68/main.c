@@ -25,6 +25,7 @@
 #include <zephyr.h>
 #include "semphr.h"
 #include "bl702.h"
+#include "bl702_sec_eng.h"
 #include "smk_ble.h"
 #include "smk_usb.h"
 #include "shell.h"
@@ -40,9 +41,11 @@
 
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
+extern uint8_t _heap2_start;
+extern uint8_t _heap2_size;
 static HeapRegion_t xHeapRegions[] = {
+    { &_heap2_start, (unsigned int)&_heap2_size}, 
     { &_heap_start, (unsigned int)&_heap_size },
-    { NULL, 0 }, /* Terminates the array. */
     { NULL, 0 }  /* Terminates the array. */
 };
 
@@ -140,13 +143,14 @@ static void raise_event()
 
 static void ble_init_task(void *pvParameters)
 {
-    ble_init();
+    smk_ble_init_task();
     vTaskDelete(NULL);
 }
 
 static void usb_init_task(void *pvParameters) //FIXME
 {
     // MSG("[SMK] usb init task\n");
+    vTaskDelay(1000);
     usb_init();
     // MSG("[SMK] usb init finish\n");
     // raise_event();
@@ -178,33 +182,44 @@ int main(void)
 {
     static StackType_t usb_init_stack[512];
     static StaticTask_t usb_init_task_h;
+    static StackType_t ble_init_stack[1024];
+    static StaticTask_t ble_init_task_h;
+    uint32_t tmpVal = 0;
+
     bflb_platform_init(0);
     shell_init();
     shell_set_prompt(SHELL_NAME);
     shell_set_print(acm_printf);
 
     MSG("Sipeed Machine Keyboard start...\r\n");
-    // HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
-    
+    HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
+
+    //Set capcode
+    tmpVal = BL_RD_REG(AON_BASE, AON_XTAL_CFG);
+    tmpVal = BL_SET_REG_BITS_VAL(tmpVal, AON_XTAL_CAPCODE_IN_AON, 33);
+    tmpVal = BL_SET_REG_BITS_VAL(tmpVal, AON_XTAL_CAPCODE_OUT_AON, 33);
+    BL_WR_REG(AON_BASE, AON_XTAL_CFG, tmpVal);
+
+    Sec_Eng_Trng_Enable();
+
     vPortDefineHeapRegions(xHeapRegions);
 
     MSG("[SMK] Device init...\r\n");
-    // xTaskCreateStatic(ble_init_task, (char *)"ble_init", sizeof(ble_init_stack) / 4, NULL, 15, ble_init_stack, &ble_init_task_h);
-    // k_work_submit(&raise_event_work);
+    xTaskCreateStatic(
+        ble_init_task, 
+        (char *)"ble_init", 
+        sizeof(ble_init_stack) / 4,
+        NULL, 
+        10, 
+        ble_init_stack, 
+        &ble_init_task_h);
 
-    // xTaskCreate(   
-    //     TestThread, 
-    //     (char *)"test",
-    //     1000,
-    //     NULL,
-    //     15,
-    //     NULL);
     xTaskCreateStatic(
         usb_init_task, 
         (char *)"usb_init", 
         sizeof(usb_init_stack) / 4, 
         NULL, 
-        configMAX_PRIORITIES - 2, 
+        10, 
         usb_init_stack, 
         &usb_init_task_h);
 
@@ -213,7 +228,7 @@ int main(void)
     //     (char *)"usb_init", 
     //     256, 
     //     NULL, 
-    //     configMAX_PRIORITIES - 2, 
+    //     10, 
     //     NULL);
 
     xTaskCreate(
@@ -221,9 +236,9 @@ int main(void)
         (char *)"rgb_loop", 
         256, 
         NULL, 
-        configMAX_PRIORITIES - 2, 
+        10, 
         NULL);
-
+    MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
     const smk_keyboard_hardware_type *hardware = smk_keyboard_get_hardware();
     QueueHandle_t queue_keypos = xQueueCreate(
         128,                   // uxQueueLength
@@ -242,7 +257,7 @@ int main(void)
         "KeyScan Task",   // pcName
         512,              // usStackDepth
         scan,             // pvParameters
-        configMAX_PRIORITIES - 2,               // uxPriority
+        10,               // uxPriority
         NULL              // pxCreatedTask
     );
     xTaskCreate(
@@ -250,7 +265,7 @@ int main(void)
         "KeyMap Task",   // pcName
         768,             // usStackDepth
         map,             // pvParameters
-        configMAX_PRIORITIES - 2,   // uxPriority
+        10,   // uxPriority
         NULL             // pxCreatedTask
     );
     xTaskCreate(
@@ -258,12 +273,12 @@ int main(void)
         "USB HID Task",          // pcName
         256,                     // usStackDepth
         queue_keycode,           // pvParameters
-        configMAX_PRIORITIES - 2,    // uxPriority
+        10,    // uxPriority
         NULL                     // pxCreateTask
     );
     MSG("[SMK] Start task scheduler...\r\n");
     vTaskStartScheduler();
-
+    MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
     BL_CASE_SUCCESS;
     while (1) {
         bflb_platform_delay_ms(100);

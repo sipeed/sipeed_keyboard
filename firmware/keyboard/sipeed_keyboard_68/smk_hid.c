@@ -14,6 +14,7 @@
 #include "keyboard/smk_keycode.h"
 
 #include "smk_hid_protocol.h"
+#include "smk_ble.h"
 
 volatile int current_data_interface =DATA_REPORT1_ID;
 volatile int current_nkro_interface =NKRO_REPORT_ID;
@@ -132,7 +133,9 @@ static void smk_usb_hid_commit(smk_usb_hid_type *hid_usb)
     for (uint8_t idx = 0; idx < 16; ++idx) {
         hid_usb->nkro_buf[hid_usb->flag ^ 1][idx] = hid_usb->nkro_buf[hid_usb->flag][idx];
     }
+    smk_ble_hid_notify(hid_usb->buf[hid_usb->flag]);
 }
+
 static uint32_t times[4]={0};
 void usbd_hid_kb_int_callback(uint8_t ep)
 {

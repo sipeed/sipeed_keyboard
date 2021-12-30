@@ -107,15 +107,16 @@ uint32_t timestamp = 0;
 
 void rgb_loop_task(void *pvParameters)
 {
+    vTaskDelay(1000);
     struct device *spi, *dma_ch3;
     uint32_t i, j;
-	uint8_t htemp, vtemp;
+    uint8_t htemp, vtemp;
 
     init_gammalist();
 
     spi_register(SPI0_INDEX, "spi");
     spi = device_find("spi");
-	dma_register(DMA0_CH3_INDEX, "dma_ch3");
+    dma_register(DMA0_CH3_INDEX, "dma_ch3");
     dma_ch3 = device_find("dma_ch3");
 
     if (spi && dma_ch3) {
