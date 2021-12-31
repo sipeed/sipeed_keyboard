@@ -2,7 +2,7 @@
 #include <zephyr.h>
 #include "errno.h"
 #include "bflb_platform.h"
-#include <smk_event_manager.h>
+#include "smk_event_manager.h"
 
 extern struct smk_event_type *__event_type_start[];
 extern struct smk_event_type *__event_type_end[];
@@ -23,16 +23,16 @@ int smk_event_manager_handle_from(smk_event_t *event, uint8_t start_index) {
         case SMK_EV_EVENT_BUBBLE:
             continue;
         case SMK_EV_EVENT_HANDLED:
-            MSG_DBG("Listener handled the event\n");
+            EM_DEBUG("[SMK][EM]Listener handled the event\n");
             ret = 0;
             goto release;
         case SMK_EV_EVENT_CAPTURED:
-            MSG_DBG("Listener captured the event\n");
+            EM_DEBUG("[SMK][EM]Listener captured the event\n");
             event->last_listener_index = i;
             // Listeners are expected to free events they capture
             return 0;
         default:
-            MSG_DBG("Listener returned an error: %d\n", ret);
+            EM_DEBUG("[SMK][EM]Listener returned an error: %d\n", ret);
             goto release;
         }
     }
@@ -54,7 +54,7 @@ int smk_event_manager_raise_after(smk_event_t *event, const struct smk_listener 
         }
     }
 
-    MSG_ERR("Unable to find where to raise this after event\n");
+    EM_DEBUG("[SMK][EM]Unable to find where to raise this after event\n");
 
     return -EINVAL;
 }
@@ -69,7 +69,7 @@ int smk_event_manager_raise_at(smk_event_t *event, const struct smk_listener *li
         }
     }
 
-    MSG_ERR("Unable to find where to raise this event\n");
+    EM_DEBUG("[SMK][EM]Unable to find where to raise this event\n");
 
     return -EINVAL;
 }

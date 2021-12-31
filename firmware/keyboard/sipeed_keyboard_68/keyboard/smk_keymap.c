@@ -1,4 +1,6 @@
 #include "keyboard/smk_keymap.h"
+#include "smk_event_manager.h"
+#include "events/rgb_switch_mode_event.h"
 
 smk_keyboard_map_type * smk_keymap_init(const smk_keyboard_hardware_type * const hardware, QueueHandle_t queue_in, QueueHandle_t queue_out)
 {
@@ -198,7 +200,9 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
 {
     const smk_keyboard_hardware_type *hardware = map->hardware;
     uint8_t layer_id;
+    uint8_t keyboard_function_id;
     smk_keycode_type keycode = (smk_keycode_type)event->data;
+    
 
     if (BASIC_KEYCODE <= keycode && keycode <= BASIC_KEYCODE_MAX) {
         // Send keycode to queue_out directly
@@ -231,6 +235,30 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
             map->layer_active[layer_id] = 0U;
             MAP_DEBUG("[SMK][KeyMap] layer %u deactivated @%u\r\n", layer_id, event->timestamp);
             break;
+        }
+    } else if (KB_FUNC_KEYCODE <= keycode && keycode <= KB_FUNC_KEYCODE_MAX) {
+        if (event->subclass == SMK_EVENT_KEYPOS_PRESS) {
+            keyboard_function_id = KF_LAYER(keycode);
+            MAP_DEBUG("[SMK][KeyMap] KeyFunc id %u @%u\r\n", keyboard_function_id, event->timestamp);   
+            switch(keyboard_function_id) {
+                case KF_RGB_MODE_UP:
+                    SMK_EVENT_RAISE(new_rgb_switch_mode_event((struct rgb_switch_mode_event)
+                    {
+                        .direction = 1,
+                    }));
+                    MAP_DEBUG("[SMK][KeyMap] KeyFunc RGB mode up\r\n");
+                    break;
+                case KF_RGB_MODE_DOWN:
+                    SMK_EVENT_RAISE(new_rgb_switch_mode_event((struct rgb_switch_mode_event)
+                    {
+                        .direction = -1,
+                    }));
+                    MAP_DEBUG("[SMK][KeyMap] KeyFunc RGB mode down\r\n");
+                    break;
+                default:
+                    MAP_DEBUG("[SMK][KeyMap] Undefined KeyFunc id %u @%u\r\n", keyboard_function_id, event->timestamp);
+                    break;
+            }
         }
     } else if (smk_keymap_is_tapping_key(map, keycode)) {
         smk_event_type event_tapping;

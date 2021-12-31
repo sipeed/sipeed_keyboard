@@ -116,6 +116,12 @@ typedef enum {
     // 0xE0-0xFF is reserved for further use
 } keycode_type;
 
+typedef enum{
+    KF_NO              = 0x00, // Reserved 
+    KF_RGB_MODE_UP     = 0X01, // Keyboard RGB Mode Up
+    KF_RGB_MODE_DOWN   = 0X02, // Keyboard RGB Mode Down
+}keyboard_function_type;
+
 #define IS_MOD_KEYS(keycode) (KC_LCTRL <= (keycode) && (keycode) <= KC_RGUI)
 
 #define KC_TRANSPARENT 0x01
@@ -327,6 +333,8 @@ typedef enum {
 #define RGUI      KC_RGUI
 #define RCMD      KC_RGUI
 #define RCmd      KC_RGUI
+#define RGBUP     KF_RGB_MODE_UP
+#define RGBDWN    KF_RGB_MODE_DOWN
 
 #endif
 
@@ -342,10 +350,15 @@ typedef enum {
     MOMENTARILY_ACTIVES_LAYER     = 0x0200,
     MOMENTARILY_ACTIVES_LAYER_MAX = 0x02FF,
     TAP_TOGGLE_LAYER              = 0x0300,
-    TAP_TOGGLE_LAYER_MAX          = 0x03FF
+    TAP_TOGGLE_LAYER_MAX          = 0x03FF,
+    KB_FUNC_KEYCODE               = 0x0400,
+    KB_FUNC_KEYCODE_MAX           = 0x04FF,
 } smk_comb_keycode_type;
 
 #define LAYER_TYPE_MASK(keycode) ((keycode) & 0xFF00)
+
+#define KF(n) (KB_FUNC_KEYCODE + (n))
+#define KF_LAYER(keycode) ((keycode) & 0xFF)
 
 #define MO(n) (MOMENTARILY_ACTIVES_LAYER + (n))
 #define MO_LAYER(keycode) ((keycode) & 0xFF)

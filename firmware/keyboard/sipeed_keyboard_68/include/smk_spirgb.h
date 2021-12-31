@@ -3,6 +3,17 @@
 
 #include <stdint.h>
 
+#ifndef EN_RGB_DEBUG
+#define EN_RGB_DEBUG 0
+#endif
+
+#if EN_RGB_DEBUG
+#include "bflb_platform.h"
+#define RGB_DEBUG(fmt, ...) MSG_DBG(fmt, ##__VA_ARGS__)
+#else
+#define RGB_DEBUG(fmt, ...)
+#endif
+
 #define SMK_RGB_USE_DMA
 
 #define RGB_LENGTH 68

@@ -149,15 +149,8 @@ static void ble_init_task(void *pvParameters)
 
 static void usb_init_task(void *pvParameters) //FIXME
 {
-    // MSG("[SMK] usb init task\n");
     vTaskDelay(1000);
     usb_init();
-    // MSG("[SMK] usb init finish\n");
-    // raise_event();
-    // while (1)
-    // {
-    //     // vTaskDelay(1000);
-    // }
     vTaskDelete(NULL);
 }
 
@@ -239,6 +232,7 @@ int main(void)
         10, 
         NULL);
     MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
+    
     const smk_keyboard_hardware_type *hardware = smk_keyboard_get_hardware();
     QueueHandle_t queue_keypos = xQueueCreate(
         128,                   // uxQueueLength

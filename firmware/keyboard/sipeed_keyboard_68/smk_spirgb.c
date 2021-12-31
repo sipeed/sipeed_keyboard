@@ -1,4 +1,7 @@
 #include "smk_spirgb.h"
+#include "smk_event_manager.h"
+
+#include "events/rgb_switch_mode_event.h"
 
 #include "hal_spi.h"
 #include "hal_dma.h"
@@ -107,7 +110,7 @@ uint32_t timestamp = 0;
 
 void rgb_loop_task(void *pvParameters)
 {
-    vTaskDelay(1000);
+    vTaskDelay(500);
     struct device *spi, *dma_ch3;
     uint32_t i, j;
     uint8_t htemp, vtemp;
@@ -159,3 +162,39 @@ void rgb_loop_task(void *pvParameters)
 	}
 
 }
+
+void switch_to_next_rgb_mode(void)
+{
+    rgb_mode++;
+    if(rgb_mode >= RGB_MODE_COUNT) {
+        rgb_mode = 0;
+    }
+    // EM_DEBUG("[SMK][EVENT]current rgb_mode: %d", rgb_mode);
+}
+
+void switch_to_last_rgb_mode(void)
+{
+    rgb_mode--;
+    if(rgb_mode < 0) {
+        rgb_mode = RGB_MODE_COUNT - 1;
+    }
+//     EM_DEBUG("[SMK][EVENT]current rgb_mode: %d", rgb_mode);
+}
+
+int rgb_switch_mode_event_listener(const smk_event_t *eh){
+    const struct rgb_switch_mode_event *ev = as_rgb_switch_mode_event(eh);
+    if (ev)
+    {
+        EM_DEBUG("[SMK][EVENT]: rgb_swicth_mode. direction:%d\r\n", ev->direction);
+        if (ev->direction == 1) {
+            switch_to_next_rgb_mode();
+        } else if (ev->direction == -1) {
+            switch_to_last_rgb_mode();
+        }
+        EM_DEBUG("[SMK][EVENT]current rgb_mode: %d\r\n", rgb_mode);
+    }
+    return 0;
+}
+
+SMK_LISTENER(rgb_switch_mode_event_listener, rgb_switch_mode_event_listener);
+SMK_SUBSCRIPTION(rgb_switch_mode_event_listener, rgb_switch_mode_event);

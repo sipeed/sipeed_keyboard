@@ -20,6 +20,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_defer_g.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_eager_defer_pk.c
                          ${CMAKE_CURRENT_LIST_DIR}/events/system_init_event.c
+                         ${CMAKE_CURRENT_LIST_DIR}/events/rgb_switch_mode_event.c
                          ${BSP_COMMON_DIR}/usb/usb_dc.c
                          ${BSP_COMMON_DIR}/usb/uart_interface.c
                          ${BSP_COMMON_DIR}/spi_sd/bsp_spi_sd.c)
@@ -35,7 +36,6 @@ set(TARGET_REQUIRED_PRIVATE_INCLUDE ${BSP_COMMON_DIR}/usb ${BSP_COMMON_DIR}/spi_
 set(mains main.c)
 set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/bl702_flash_ble.ld)
 add_definitions(-DCONFIG_BT_DEVICE_NAME="Sipeed Keyboard 68")
-add_definitions(-DEN_BLE_DEBUG=1)
 set(CONFIG_BT_DIS_SERVER on)
 add_definitions(-DCONFIG_BT_GATT_DIS_PNP=1)
 generate_bin()
@@ -46,5 +46,6 @@ IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     add_definitions(-DEN_HID_DEBUG=1)
     add_definitions(-DEN_USB_DEBUG=1)
     add_definitions(-DEN_SCAN_DEBUG=1)
+    add_definitions(-DEN_EM_DEBUG=1)
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 

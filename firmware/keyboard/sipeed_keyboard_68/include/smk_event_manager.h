@@ -12,6 +12,17 @@
 #include "bl_port.h"
 #include "gcc.h"
 
+#ifndef EN_EM_DEBUG
+#define EN_EM_DEBUG 0
+#endif
+
+#if EN_EM_DEBUG
+#include "bflb_platform.h"
+#define EM_DEBUG(fmt, ...) MSG_DBG(fmt, ##__VA_ARGS__)
+#else
+#define EM_DEBUG(fmt, ...)
+#endif
+
 
 struct smk_event_type {
     const char *name;
