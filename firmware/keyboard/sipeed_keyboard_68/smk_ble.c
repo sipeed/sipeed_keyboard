@@ -2,8 +2,11 @@
 #include "conn.h"
 #include "smk_ble_hog_service.h"
 #include "dis.h"
+#include "bas.h"
 #include "smk_ble_profile.h"
 #include "log.h"
+#include "smk_event_manager.h"
+#include "events/battery_update_event.h"
 
 static uint8_t isRegister = 0;
 struct bt_conn *default_conn = NULL;
@@ -182,6 +185,7 @@ void smk_ble_services_init()
         bt_conn_auth_cb_register(&smk_ble_auth_cb_display);
 
         // dis_init(0x02, 0xe502, 0xa111, 0x0210); //dis
+        bas_init();
         smk_hog_service_init();
         
     }
@@ -253,3 +257,16 @@ void smk_ble_init_task(void)
 {
     ble_stack_start();
 }
+
+static int battery_update_event_listener(const smk_event_t *eh){
+    const struct battery_update_event *ev = as_battery_update_event(eh);
+    if (ev)
+    {
+        EM_DEBUG("[EVENT] battery_update_event: %d\r\n", ev->level);
+        bt_gatt_bas_set_battery_level(ev->level);
+    }
+    return 0;
+}
+
+SMK_LISTENER(battery_update_event_listener, battery_update_event_listener);
+SMK_SUBSCRIPTION(battery_update_event_listener, battery_update_event);

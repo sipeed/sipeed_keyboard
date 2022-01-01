@@ -32,6 +32,7 @@
 #include "smk_command.h"
 #include "smk_spirgb.h"
 #include "smk_spirgb_command.h"
+#include "smk_battery.h"
 
 #include "keyboard/smk_keyscan.h"
 #include "keyboard/smk_keymap.h"
@@ -149,7 +150,7 @@ static void ble_init_task(void *pvParameters)
 
 static void usb_init_task(void *pvParameters) //FIXME
 {
-    vTaskDelay(1000);
+    // vTaskDelay(1000);
     usb_init();
     vTaskDelete(NULL);
 }
@@ -171,6 +172,7 @@ int init_event_listener(const smk_event_t *eh){
 SMK_LISTENER(init_event_listener, init_event_listener);
 SMK_SUBSCRIPTION(init_event_listener, system_init_event);
 
+
 int main(void)
 {
     static StackType_t usb_init_stack[512];
@@ -183,7 +185,7 @@ int main(void)
     shell_init();
     shell_set_prompt(SHELL_NAME);
     shell_set_print(acm_printf);
-
+    
     MSG("Sipeed Machine Keyboard start...\r\n");
     HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
 
@@ -232,7 +234,7 @@ int main(void)
         10, 
         NULL);
     MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
-    
+
     const smk_keyboard_hardware_type *hardware = smk_keyboard_get_hardware();
     QueueHandle_t queue_keypos = xQueueCreate(
         128,                   // uxQueueLength
@@ -267,6 +269,15 @@ int main(void)
         "USB HID Task",          // pcName
         256,                     // usStackDepth
         queue_keycode,           // pvParameters
+        10,    // uxPriority
+        NULL                     // pxCreateTask
+    );
+
+    xTaskCreate(
+        smk_battery_update_task, // pxTaskCode
+        "Battery Update Task",   // pcName
+        256,                     // usStackDepth
+        NULL,                    // pvParameters
         10,    // uxPriority
         NULL                     // pxCreateTask
     );
