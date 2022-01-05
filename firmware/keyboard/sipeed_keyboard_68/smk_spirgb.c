@@ -20,7 +20,7 @@ uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
 
 static uint8_t gammalist[256];
 
-static init_gammalist() {
+static void init_gammalist() {
     for(int i=0;i<256;i++) {
         float a=((float)i)/255.0f;
         float b=powf(a,LED_GAMMA)*255;
@@ -87,7 +87,8 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 
 #endif
 
-/*static */int rgb_mode = RGB_MODE_AOFF;
+/* static */ int rgb_mode = 0;
+/* static */ uint8_t rgb_global_brightness = 255;
 
 DRGB RGB_Buffer[RGB_LENGTH];
 
@@ -98,6 +99,15 @@ static const hid_data_reg_t modereg={
     .maptype=map_type_data,
     .datatype=data_type_fixed
 };
+
+static const hid_data_reg_t brightnessreg = {
+    .base=0x8004,
+    .size=sizeof(rgb_global_brightness),
+    .data=&rgb_global_brightness,
+    .maptype=map_type_data,
+    .datatype=data_type_fixed
+};
+
 static const hid_data_reg_t ledreg={
     .base=0x9000,
     .size=sizeof(RGB_Buffer),
@@ -106,14 +116,38 @@ static const hid_data_reg_t ledreg={
     .datatype=data_type_fixed
 };
 
+static const hid_data_reg_t ledcolorreg={
+    .base=0xA000,
+    .size=sizeof(rgb_color_descriptor),
+    .data=&rgb_color_descriptor,
+    .maptype=map_type_data,
+    .datatype=data_type_fixed
+};
+
+static const hid_data_reg_t ledcfgreg={
+    .base=0xB000,
+    .size=sizeof(rgb_effect_list_fixed),
+    .data=&rgb_effect_list_fixed,
+    .maptype=map_type_data,
+    .datatype=data_type_fixed
+};
+
+DRGB rgb_alpha(DRGB source, uint8_t alpha)
+{
+    DRGB rval;
+    rval.R = (source.R * alpha) >> 8;
+    rval.G = (source.G * alpha) >> 8;
+    rval.B = (source.B * alpha) >> 8;
+    return rval;
+}
+
 uint32_t timestamp = 0;
 
 void rgb_loop_task(void *pvParameters)
 {
     vTaskDelay(500);
     struct device *spi, *dma_ch3;
-    uint32_t i, j;
-    uint8_t htemp, vtemp;
+    uint32_t i;
 
     init_gammalist();
 
@@ -130,10 +164,11 @@ void rgb_loop_task(void *pvParameters)
 	}
 
     hid_data_protocal_reg(&modereg);
+    hid_data_protocal_reg(&brightnessreg);
     hid_data_protocal_reg(&ledreg);
+    hid_data_protocal_reg(&ledcolorreg);
+    hid_data_protocal_reg(&ledcfgreg);
 
-
-	j = 0;
 	for (;;) {
 		vTaskDelay(10);
 
@@ -143,10 +178,16 @@ void rgb_loop_task(void *pvParameters)
 				RGB_Buffer[i].word = 0;
 			}
 
-			RGB_EFF_NODE *ceff = rgb_effect_list_fixed + 0;
+			RGB_EFF_NODE *ceff = &rgb_effect_list_fixed[rgb_mode];
 			int ceffid = ceff->eff_id;
 			int ceffoffset = ceff->time_offset;
 			rgb_effect_descriptor[ceffid].eff_func(ceff, timestamp - ceffoffset);
+		
+			if (rgb_global_brightness != 255) {
+				for (i = 0; i < RGB_LENGTH; i++) {
+					RGB_Buffer[i] = rgb_alpha(RGB_Buffer[i], rgb_global_brightness);
+				}
+			}
 		}
 		
 		timestamp ++;
@@ -158,7 +199,6 @@ void rgb_loop_task(void *pvParameters)
 		RGB_Transmit(spi, RGB_Buffer);
 		vTaskExitCritical();
 #endif	
-		j++;
 	}
 
 }
