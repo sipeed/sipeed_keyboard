@@ -93,7 +93,7 @@ typedef struct {
 	uint32_t time_offset;
 	uint32_t eff_var[5];
 } RGB_EFF_NODE;
-extern RGB_EFF_NODE rgb_effect_list_fixed[]; 
+extern RGB_EFF_NODE rgb_effect_list_fixed[8]; 
 
 // Effect descriptor in flash
 typedef struct {
@@ -108,8 +108,9 @@ typedef struct RGB_COLOR_DESC {
 	DRGB (*color_func)(struct RGB_COLOR_DESC *, uint16_t);
 	uint32_t func_data[3];
 } RGB_COLOR_DESC;
-extern RGB_COLOR_DESC rgb_color_descriptor[]; 
+extern RGB_COLOR_DESC rgb_color_descriptor[10]; 
 
+DRGB rgb_alpha(DRGB source, uint8_t alpha);
 void rgb_loop_task(void *pvParameters);
 
 #endif

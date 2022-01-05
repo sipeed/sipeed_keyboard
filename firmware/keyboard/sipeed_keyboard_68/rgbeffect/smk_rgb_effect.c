@@ -2,15 +2,6 @@
 #include "rgbeffect/smk_rgb_color.h"
 #include "rgbeffect/smk_rgb_effect.h"
 
-DRGB rgb_alpha(DRGB source, uint8_t alpha)
-{
-    DRGB rval;
-    rval.R = (source.R * alpha) >> 8;
-    rval.G = (source.G * alpha) >> 8;
-    rval.B = (source.B * alpha) >> 8;
-    return rval;
-}
-
 void blend_color(DRGB *target, DRGB source, uint8_t blend_mode)
 {
     switch (blend_mode) {
@@ -86,7 +77,7 @@ uint32_t rgb_mixdistance(uint32_t xdist, uint32_t ydist, int mode)
     case RGB_DISTANCE_SQRT:
         return rgb_fxsqrt(((xdist * xdist) >> 16) + ((ydist * ydist) >> 16));
     case RGB_DISTANCE_LFSR:
-        return rgb_lfsr(xdist ^ ydist);
+        return rgb_lfsr(xdist ^ rgb_lfsr(ydist ^ rgb_lfsr(xdist)));
     }
     return 0;
 }
