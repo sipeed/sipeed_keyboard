@@ -234,9 +234,9 @@ void kb_set_idle_callback(uint8_t reportid, uint8_t duration){
     kb_idle=duration==0;
     kb_idle_dur=duration*4;
     if(duration==0)
-        xTimerChangePeriod(hid_timer,portMAX_DELAY,portMAX_DELAY);
+        xTimerChangePeriodFromISR(hid_timer,portMAX_DELAY,NULL);
     else
-        xTimerChangePeriod(hid_timer,pdMS_TO_TICKS(kb_idle_dur),portMAX_DELAY);
+        xTimerChangePeriodFromISR(hid_timer,pdMS_TO_TICKS(kb_idle_dur),NULL);
 }
 
 void smk_reset_callback(){
