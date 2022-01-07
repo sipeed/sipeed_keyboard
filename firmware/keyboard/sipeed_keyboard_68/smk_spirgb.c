@@ -38,7 +38,9 @@ void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuff
 		Bbuf = gammalist[rgbbuffer[i].B];
 
         if(i==CAPS_KEY_LED) {
-            Gbuf=Rbuf=Bbuf=shared_kb_led&0x02?0xff:0;
+			if (shared_kb_led&0x02) {
+				Gbuf = Rbuf = Bbuf = 0xff;
+			}
         }
 
 		for (j = 0; j < 8; j++) {
@@ -88,7 +90,7 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 #endif
 
 /* static */ int rgb_mode = 0;
-/* static */ uint8_t rgb_global_brightness = 255;
+/* static */ uint8_t rgb_global_brightness = 120;
 
 DRGB RGB_Buffer[RGB_LENGTH];
 

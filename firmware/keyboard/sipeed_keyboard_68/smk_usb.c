@@ -208,7 +208,7 @@ void usb_init(){ //task init
     }
 
     while (!usb_device_is_configured()) {
-        vTaskDelay(100);
+        // vTaskDelay(100);
     }
 
     // while (1) {
