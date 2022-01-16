@@ -38,6 +38,7 @@
 #include "keyboard/smk_keymap.h"
 
 #include "smk_event_manager.h"
+#include "smk_config_manager.h"
 #include "events/system_init_event.h"
 
 extern uint8_t _heap_start;
@@ -188,6 +189,9 @@ int main(void)
     
     MSG("Sipeed Machine Keyboard start...\r\n");
     HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
+
+    flash_init();
+    smk_config_init();
 
     //Set capcode
     tmpVal = BL_RD_REG(AON_BASE, AON_XTAL_CFG);

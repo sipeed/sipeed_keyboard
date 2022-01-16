@@ -11,6 +11,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/smk_msc.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_spirgb.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_event_manager.c
+                         ${CMAKE_CURRENT_LIST_DIR}/smk_config_manager.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_color.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_effect.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_layout.c

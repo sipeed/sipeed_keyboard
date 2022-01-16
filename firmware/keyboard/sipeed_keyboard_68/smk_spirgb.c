@@ -1,5 +1,6 @@
 #include "smk_spirgb.h"
 #include "smk_event_manager.h"
+#include "smk_config_manager.h"
 
 #include "events/rgb_switch_mode_event.h"
 
@@ -148,6 +149,7 @@ uint32_t timestamp = 0;
 void rgb_loop_task(void *pvParameters)
 {
     vTaskDelay(500);
+    rgb_mode = smk_rgb_config->rgb_mode;
     struct device *spi, *dma_ch3;
     uint32_t i;
 
@@ -211,6 +213,8 @@ void switch_to_next_rgb_mode(void)
     if(rgb_mode >= RGB_MODE_COUNT) {
         rgb_mode = 0;
     }
+    smk_rgb_config->rgb_mode = rgb_mode;
+    smk_config_save();
     // EM_DEBUG("[SMK][EVENT]current rgb_mode: %d", rgb_mode);
 }
 
@@ -220,6 +224,8 @@ void switch_to_last_rgb_mode(void)
     if(rgb_mode < 0) {
         rgb_mode = RGB_MODE_COUNT - 1;
     }
+    smk_rgb_config->rgb_mode = rgb_mode;
+    smk_config_save();
 //     EM_DEBUG("[SMK][EVENT]current rgb_mode: %d", rgb_mode);
 }
 
