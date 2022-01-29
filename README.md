@@ -22,9 +22,10 @@ sipeed opensource mechanical keyboard make with BL706 <br>
 
 ```sh
 git clone https://github.com/sipeed/sipeed_keyboard.git
+cd sipeed_keyboard
 git submodule init
 git submodule update
-cd sipeed_keyboard/firmware/bl_mcu_sdk
+cd firmware/bl_mcu_sdk
 make build BOARD=sipeed_keyboard APP=sipeed_keyboard_68 APP_DIR=../keyboard
 
 ```
