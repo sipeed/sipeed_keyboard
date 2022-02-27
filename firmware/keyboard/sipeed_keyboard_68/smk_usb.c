@@ -3,6 +3,8 @@
 #include "usbd_hid.h"
 #include "hal_usb.h"
 #include "smk_hid.h"
+#include "smk_config_manager.h"
+#include "smk_event_manager.h"
 
 #define USBD_VID           0xFFFF
 #define USBD_PID           0xFFFF
@@ -192,25 +194,31 @@ USB_DESC_SECTION const uint8_t sipeed_keyboard_descriptor[] = { // single hid ke
     0x00
 };
 
-struct device *usb_fs;
+struct device *usb_device;
 
 extern struct device *usb_dc_init(void);
+
+static void smk_usb_open()
+{
+    usb_device = usb_dc_init();
+    if (usb_device) {
+        device_control(usb_device, DEVICE_CTRL_SET_INT, (void *)(USB_EP1_DATA_IN_IT |USB_EP2_DATA_OUT_IT | USB_EP3_DATA_OUT_IT | USB_EP5_DATA_IN_IT| USB_EP6_DATA_IN_IT |USB_EP7_DATA_IN_IT));
+    }
+}
+
+static void smk_usb_close()
+{
+    if (usb_device) {
+        device_close(usb_device);
+    }
+}
 
 void usb_init(){ //task init
     usbd_desc_register(sipeed_keyboard_descriptor);
     smk_cdc_init();
     smk_hid_usb_init();
 
-    usb_fs = usb_dc_init();
-
-    if (usb_fs) {
-        device_control(usb_fs, DEVICE_CTRL_SET_INT, (void *)(USB_EP1_DATA_IN_IT |USB_EP2_DATA_OUT_IT | USB_EP3_DATA_OUT_IT | USB_EP5_DATA_IN_IT| USB_EP6_DATA_IN_IT |USB_EP7_DATA_IN_IT));
+    if (smk_system_config->endpoint == SMK_ENDPOINT_USB || smk_system_config->endpoint == SMK_ENDPOINT_USB_BLE) {
+        smk_usb_open();
     }
-
-    while (!usb_device_is_configured()) {
-        // vTaskDelay(100);
-    }
-
-    // while (1) {
-    // }
 }
