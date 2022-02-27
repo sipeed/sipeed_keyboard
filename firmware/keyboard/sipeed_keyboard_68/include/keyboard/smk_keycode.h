@@ -333,8 +333,8 @@ typedef enum{
 #define RGUI      KC_RGUI
 #define RCMD      KC_RGUI
 #define RCmd      KC_RGUI
-#define RGBUP     KF_RGB_MODE_UP
-#define RGBDWN    KF_RGB_MODE_DOWN
+#define RGBUP     KF(KF_RGB_MODE_UP)
+#define RGBDWN    KF(KF_RGB_MODE_DOWN)
 
 #endif
 
