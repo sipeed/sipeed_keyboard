@@ -14,7 +14,7 @@
 #define RGB_DEBUG(fmt, ...)
 #endif
 
-#define SMK_RGB_USE_DMA
+#define SMK_RGB_USE_DMA 1
 
 #define RGB_LENGTH 68
 

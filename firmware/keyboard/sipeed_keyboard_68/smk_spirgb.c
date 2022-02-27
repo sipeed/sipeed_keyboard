@@ -12,12 +12,10 @@
 
 #include "smk_hid_protocol.h"
 
-#ifdef SMK_RGB_USE_DMA
 
 extern const int CAPS_KEY_LED;
 extern const float LED_GAMMA;
 uint8_t shared_kb_led=0;
-uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
 
 static uint8_t gammalist[256];
 
@@ -28,6 +26,9 @@ static void init_gammalist() {
         gammalist[i]=b>255?255:b;
     }
 }
+
+#if(SMK_RGB_USE_DMA)
+uint32_t RGB_DMA_Buffer[RGB_LENGTH*3];
 
 void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuffer) {
 	int i, j;
@@ -196,7 +197,7 @@ void rgb_loop_task(void *pvParameters)
 		
 		timestamp ++;
 
-#ifdef SMK_RGB_USE_DMA
+#if(SMK_RGB_USE_DMA)
 		RGB_DMA_Transmit(spi, dma_ch3, RGB_Buffer);
 #else
 		vTaskEnterCritical();
