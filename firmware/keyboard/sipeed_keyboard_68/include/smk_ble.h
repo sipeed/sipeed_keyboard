@@ -28,11 +28,24 @@
 
 #define PROFILE_COUNT SMK_CONFIG_BT_MAX_PAIRED
 
-void smk_ble_services_init();
+// void smk_ble_services_init();
 int smk_ble_hid_notify(uint8_t *data);
 
+int smk_ble_clear_bonds();
+int smk_ble_prof_next();
+int smk_ble_prof_prev();
+int smk_ble_prof_select(uint8_t index);
 
-int smk_ble_start_adv(void);
+int smk_ble_active_profile_index();
+bt_addr_le_t *smk_ble_active_profile_addr();
+bool smk_ble_active_profile_is_open();
+bool smk_ble_active_profile_is_connected();
+char *smk_ble_active_profile_name();
+
+int smk_ble_unpair_all();
+
+
+// int smk_ble_start_adv(void);
 void bt_enable_cb(int err);
 void smk_ble_stack_start(void);
 void smk_ble_init_task(void);

@@ -213,14 +213,14 @@ int main(void)
         ble_init_stack, 
         &ble_init_task_h);
 
-    xTaskCreateStatic(
-        usb_init_task, 
-        (char *)"usb_init", 
-        sizeof(usb_init_stack) / 4, 
-        NULL, 
-        10, 
-        usb_init_stack, 
-        &usb_init_task_h);
+    // xTaskCreateStatic(
+    //     usb_init_task, 
+    //     (char *)"usb_init", 
+    //     sizeof(usb_init_stack) / 4, 
+    //     NULL, 
+    //     10, 
+    //     usb_init_stack, 
+    //     &usb_init_task_h);
 
     // xTaskCreate( 
     //     usb_init_task, 
@@ -285,9 +285,9 @@ int main(void)
         10,    // uxPriority
         NULL                     // pxCreateTask
     );
+    MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
     MSG("[SMK] Start task scheduler...\r\n");
     vTaskStartScheduler();
-    MSG("[SMK] Free Heap:%d\r\n", (int)xPortGetFreeHeapSize());
     BL_CASE_SUCCESS;
     while (1) {
         bflb_platform_delay_ms(100);

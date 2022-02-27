@@ -24,6 +24,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/events/system_init_event.c
                          ${CMAKE_CURRENT_LIST_DIR}/events/rgb_switch_mode_event.c
                          ${CMAKE_CURRENT_LIST_DIR}/events/battery_update_event.c
+                         ${CMAKE_CURRENT_LIST_DIR}/events/ble_active_profile_changed.c
                          ${CMAKE_CURRENT_LIST_DIR}/bas.c
                          ${BSP_COMMON_DIR}/usb/usb_dc.c
                          ${BSP_COMMON_DIR}/usb/uart_interface.c
@@ -39,11 +40,11 @@ endif()
 set(TARGET_REQUIRED_PRIVATE_INCLUDE ${BSP_COMMON_DIR}/usb ${BSP_COMMON_DIR}/spi_sd)
 set(mains main.c)
 set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/bl702_flash_ble.ld)
-add_definitions(-DCONFIG_BT_DEVICE_NAME="Sipeed Keyboard 68")
+add_definitions(-DCONFIG_BT_DEVICE_NAME="SMK68_BLE")
 set(CONFIG_BT_DIS_SERVER on)
 add_definitions(-DCONFIG_BT_GATT_DIS_PNP=1)
 add_definitions(-DCONFIG_BT_BAS_SERVER=1)
-generate_bin()
+add_definitions(-DEN_BLE_DEBUG=1)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     message("debug mode")
@@ -55,3 +56,4 @@ IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     add_definitions(-DEN_BAT_DEBUG=1)
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
+generate_bin()
