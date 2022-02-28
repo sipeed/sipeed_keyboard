@@ -55,7 +55,7 @@ void RGB_DMA_Transmit(struct device *spi, struct device *dmatxch, DRGB * rgbbuff
 		}
 	}
 
-    while (device_control(dmatxch, DMA_CHANNEL_GET_STATUS, NULL))
+    while (device_control(dmatxch, DEVICE_CTRL_DMA_CHANNEL_GET_STATUS, NULL))
 		;
 
 	device_control(spi, DEVICE_CTRL_TX_DMA_RESUME, NULL);
