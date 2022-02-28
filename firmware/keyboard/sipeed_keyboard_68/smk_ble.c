@@ -406,12 +406,15 @@ int smk_ble_hid_notify(uint8_t *data)
 {
     bt_addr_le_t *addr;
     struct bt_conn *conn;
+    int err;
     addr = smk_ble_active_profile_addr();                                                          \
     conn = bt_conn_lookup_addr_le(BT_ID_DEFAULT, addr);
     if (conn)
-        return smk_hog_service_notify(conn, data);
+        err = smk_hog_service_notify(conn, data);
     else
-        return -1;
+        err = -1;
+    bt_conn_unref(conn);
+    return err;
 }
 
 // int smk_ble_start_adv(void)
@@ -437,6 +440,21 @@ int smk_ble_hid_notify(uint8_t *data)
 //     BLE_DEBUG("[BLE] ble_start_adv...\r\n");
 //     return bt_le_adv_start(&adv_param, adv_data, ARRAY_SIZE(adv_data), NULL, 0);
 // }
+
+static void smk_ble_read_local_address()
+{
+    bt_addr_le_t local_pub_addr;
+    bt_addr_le_t local_ram_addr;
+    char le_addr[BT_ADDR_LE_STR_LEN];
+
+    bt_get_local_public_address(&local_pub_addr);
+    bt_addr_le_to_str(&local_pub_addr, le_addr, sizeof(le_addr));
+    BLE_DEBUG("[BLE] Local public addr : %s\r\n", le_addr);
+
+    bt_get_local_ramdon_address(&local_ram_addr);
+    bt_addr_le_to_str(&local_ram_addr, le_addr, sizeof(le_addr));
+    BLE_DEBUG("[BLE] Local random addr : %s\r\n", le_addr);
+}
 
 
 static void smk_ble_ready(int err)
@@ -474,6 +492,8 @@ void ble_stack_start(void)
     if (err) {
         BLE_DEBUG("[BLE] bt_enable failed: %d\r\n", err);
     }
+
+    smk_ble_read_local_address();
 
 #if CONFIG_BLE_CLEAR_BOUNDS_ON_START
 // #if 1
