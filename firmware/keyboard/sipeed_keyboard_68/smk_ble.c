@@ -410,10 +410,12 @@ int smk_ble_hid_notify(uint8_t *data)
     addr = smk_ble_active_profile_addr();                                                          \
     conn = bt_conn_lookup_addr_le(BT_ID_DEFAULT, addr);
     if (conn)
+    {
         err = smk_hog_service_notify(conn, data);
+        bt_conn_unref(conn);
+    }
     else
         err = -1;
-    bt_conn_unref(conn);
     return err;
 }
 
