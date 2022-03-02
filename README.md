@@ -13,19 +13,37 @@ sipeed opensource mechanical keyboard(SMK) made with BL706
 ## 特性
 
 * 主控使用 BL706， 使用 `RISC-V` 核， 支持蓝牙和 `USB`，[代码开源](https://github.com/Sipeed/sipeed_keyboard)
+* 键轴支持热插拔
+
+
+## 使用指导
+
+如果你想快速用上这款开源键盘：
+
+* 从 [Sipeed](https://sipeed.taobao.com) 购买 SMK68 键盘底板（可能需要询问商家），不包含键帽和键轴
+* 自行购买键轴和键帽（68键），组装成完整键盘
+* 出厂自带了固件，可以插上 USB 测试按键是否均能响应，至此键盘已经可以正常使用
+* 更新固件：在 [release](https://github.com/sipeed/sipeed_keyboard/releases) 页面下载最新固件，按照[固件升级方法]()升级固件
+* 使用软件自定义按键（待做）
+
+如果你想更深入地定制你的键盘， 本项目下包含了
+* 键盘硬件（PCB 板）原理图
+* 键盘固件源码
+* 软件源码（运行在电脑上）
+
+只需要克隆本项目到本地，根据你的喜好进行修改即可，也欢迎参与贡献，大家一起改进体验！
 
 
 ## 目录结构
 
 ```
-./
-├── LICENSE
+├── LICENSE    // 开源证书
 ├── README.md
-├── firmware // 存放键盘固件
-├── hardware // 硬件设计
-├── software // 上位机软件
-├── teamworks // 贡献记录
-└── tools // 工具
+├── firmware   // 存放键盘固件
+├── hardware   // 硬件设计
+├── software   // 上位机软件
+├── teamworks  // 贡献记录
+└── tools      // 工具
 ```
 
 ## 构建键盘固件
