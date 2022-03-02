@@ -64,8 +64,23 @@ make build BOARD=sipeed_keyboard APP=sipeed_keyboard_68 APP_DIR=../keyboard
 
 烧录结束后需要手动按一下 <kbd>RESET</kbd> 按键来重启键盘
 
+## 开源证书
+
+代码采用 [Apache 2.0](./LICENSE) 开源协议， 参与贡献后可以在修改的文件头注释标明修改和日期
+
+## 贡献者
+
+<a href="https://github.com/sipeed/sipeed_keyboard/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sipeed/sipeed_keyboard" />
+</a>
 
 
-## 交流QQ群
+## 参与贡献
 
-![](https://img.hackx.cc/img/qrcode_1626271263202.jpg)
+* 项目进度可以在 [sipeed_keyboard/projects](https://github.com/sipeed/sipeed_keyboard/projects) 看到， 为领取的任务可以领取一起做~
+* 可以发起[issues](https://github.com/sipeed/sipeed_keyboard/issues)，做好了提交 `Pulll Request`
+* 可以加 QQ 群参与讨论（ 933963409 ）
+<img height=600 src="https://cdn.sipeed.com/public/sipeed_keyboard_qq_qrcode.jpg">
+
+
+
