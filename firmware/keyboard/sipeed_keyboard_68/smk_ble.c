@@ -8,6 +8,7 @@
 #include "smk_event_manager.h"
 #include "events/battery_update_event.h"
 #include "events/ble_active_profile_changed.h"
+#include "easyflash.h"
 
 static uint8_t isRegister = 0;
 struct bt_conn *default_conn = NULL;
@@ -76,11 +77,29 @@ void set_profile_address(uint8_t index, const bt_addr_le_t *addr) {
 
     memcpy(&profiles[index].peer, addr, sizeof(bt_addr_le_t));
     sprintf(setting_name, "ble/profiles/%d", index);
-    BLE_DEBUG("[BLE] Setting profile addr for %s to %s", log_strdup(setting_name), log_strdup(addr_str));
+    BLE_DEBUG("[BLE] Setting profile addr for %s to %s\r\n", log_strdup(setting_name), log_strdup(addr_str));
+    ef_set_env_blob(setting_name, &profiles[index], sizeof(struct smk_ble_profile));
     // settings_save_one(setting_name, &profiles[index], sizeof(struct smk_ble_profile));
     // smk_ble_profile_save_one(setting_name, &profiles[index], sizeof(struct smk_ble_profile));// TODO:
 
     k_work_submit(&raise_profile_changed_event_work);
+}
+
+static void load_profiles(){
+    char setting_name[15];
+    int i;
+    for (i = 0; i < PROFILE_COUNT; i++) {
+        memset(&profiles[i], 0, sizeof(struct smk_ble_profile));
+        sprintf(setting_name, "ble/profiles/%d", i);
+        size_t len;
+        ef_get_env_blob(setting_name, &profiles[i], sizeof(struct smk_ble_profile), &len);
+        if (len == 0)
+        {
+            BLE_DEBUG("[BLE] No profile found for %s\r\n", log_strdup(setting_name));
+        }else{
+            BLE_DEBUG("[BLE] Profile found for %s\r\n", log_strdup(setting_name));
+        }
+    }
 }
 
 bool smk_ble_active_profile_is_connected()
@@ -479,7 +498,8 @@ void bt_enable_cb(int err)
 }
 
 void ble_stack_start(void)
-{
+{   
+    
     BLE_DEBUG("[BLE] ble_controller_init...\r\n");
     GLB_Set_EM_Sel(GLB_EM_8KB);
     ble_controller_init(configMAX_PRIORITIES - 1);
@@ -495,7 +515,6 @@ void ble_stack_start(void)
         BLE_DEBUG("[BLE] bt_enable failed: %d\r\n", err);
     }
 
-    smk_ble_read_local_address();
 
 #if CONFIG_BLE_CLEAR_BOUNDS_ON_START
 // #if 1
@@ -504,19 +523,44 @@ void ble_stack_start(void)
     for (int i = 0; i < 10; i++) {
         bt_unpair(i, NULL);
     }
-    // TODO: DELETE SETTINGS
+    for (int i = 0; i < PROFILE_COUNT; i++) {
+        char setting_name[15];
+        sprintf(setting_name, "ble/profiles/%d", i);
+
+        err = settings_delete(setting_name);
+        if (err) {
+            BLE_DEBUG("Failed to delete setting: %d", err);
+        }
+    }
+
 #endif // CONFIG_BLE_CLEAR_BOUNDS_ON_START
-
-    // bt_conn_cb_register(&conn_callbacks);
-    // bt_conn_auth_cb_register(&smk_ble_auth_cb_display);
-
-    // smk_ble_ready(0);
+    bool id_saved_flag = false;
+    if(!ef_get_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag), NULL))
+    {
+        ef_set_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag));
+    }
+    if(!id_saved_flag)
+    {
+        bt_id_create(NULL, NULL);
+        bt_settings_save_id();
+        id_saved_flag = true;
+        ef_set_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag));
+    }
+    smk_ble_read_local_address();
+    load_profiles();
 
 }
 
 void smk_ble_init_task(void)
 {
     ble_stack_start();
+
+    // test macro
+    BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_BREDR: %d \r\n",IS_ENABLED(CONFIG_BT_BREDR));
+    BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_SMP: %d \r\n",IS_ENABLED(CONFIG_BT_SMP));
+    BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_SETTINGS: %d \r\n",IS_ENABLED(CONFIG_BT_SETTINGS));
+    BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_BONDABLE: %d \r\n",IS_ENABLED(CONFIG_BT_BONDABLE));
+    
 
     // services init
     bas_init();

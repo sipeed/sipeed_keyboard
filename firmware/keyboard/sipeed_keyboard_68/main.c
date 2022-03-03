@@ -41,6 +41,8 @@
 #include "smk_config_manager.h"
 #include "events/system_init_event.h"
 
+#include "easyflash.h"
+
 extern uint8_t _heap_start;
 extern uint8_t _heap_size; // @suppress("Type cannot be resolved")
 extern uint8_t _heap2_start;
@@ -173,6 +175,26 @@ int init_event_listener(const smk_event_t *eh){
 SMK_LISTENER(init_event_listener, init_event_listener);
 SMK_SUBSCRIPTION(init_event_listener, system_init_event);
 
+static void test_env(void) {
+    uint32_t i_boot_times = NULL;
+    char *c_old_boot_times, c_new_boot_times[11] = {0};
+    /* get the boot count number from Env */
+    c_old_boot_times = ef_get_env("boot_times");
+    if (!c_old_boot_times) {
+        i_boot_times = 0;
+    } else {
+        i_boot_times = atoi(c_old_boot_times);
+    }
+    /* boot count +1 */
+    i_boot_times ++;
+    MSG("The system now boot %d times\n\r", i_boot_times);
+    /* interger to string */
+    sprintf(c_new_boot_times,"%ld", i_boot_times);
+    /* set and store the boot count number to Env */
+    ef_set_env("boot_times", c_new_boot_times);
+    ef_save_env();
+}
+
 
 int main(void)
 {
@@ -192,6 +214,10 @@ int main(void)
 
     flash_init();
     smk_config_init();
+    bt_check_if_ef_ready();
+
+    test_env();
+
 
     //Set capcode
     tmpVal = BL_RD_REG(AON_BASE, AON_XTAL_CFG);
