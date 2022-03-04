@@ -515,6 +515,9 @@ void ble_stack_start(void)
         BLE_DEBUG("[BLE] bt_enable failed: %d\r\n", err);
     }
 
+#ifndef CONFIG_BLE_CLEAR_BOUNDS_ON_START
+#define CONFIG_BLE_CLEAR_BOUNDS_ON_START 0
+#endif
 
 #if CONFIG_BLE_CLEAR_BOUNDS_ON_START
 // #if 1

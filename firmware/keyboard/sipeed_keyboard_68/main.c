@@ -306,7 +306,7 @@ int main(void)
     xTaskCreate(
         smk_battery_update_task, // pxTaskCode
         "Battery Update Task",   // pcName
-        256,                     // usStackDepth
+        384,                     // usStackDepth
         NULL,                    // pvParameters
         10,    // uxPriority
         NULL                     // pxCreateTask
