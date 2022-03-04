@@ -11,5 +11,7 @@
 
 
 void usb_init();
+void smk_usb_open();
+void smk_usb_close();
 
 #endif //__SMK_USB_H

@@ -41,13 +41,10 @@ bt_addr_le_t *smk_ble_active_profile_addr();
 bool smk_ble_active_profile_is_open();
 bool smk_ble_active_profile_is_connected();
 char *smk_ble_active_profile_name();
-
+void smk_ble_clear_bound(int id);
 int smk_ble_unpair_all();
 
-
-// int smk_ble_start_adv(void);
-void bt_enable_cb(int err);
-void smk_ble_stack_start(void);
 void smk_ble_init_task(void);
+void smk_ble_deinit(void);
 
 #endif //__SMK_BLE_H

@@ -311,6 +311,17 @@ static void smk_ble_disconnected(struct bt_conn *conn, uint8_t reason)
     k_work_submit(&update_advertising_work);
     if (is_conn_active_profile(conn)){
         BLE_DEBUG("[BLE] Disconnected from active profile\r\n");
+        if (reason == BT_HCI_ERR_REMOTE_USER_TERM_CONN){
+            BLE_DEBUG("[BLE] Disconnected from active profile due to user termination\r\n");
+            bt_unpair(smk_ble_active_profile_index(), NULL);
+            char setting_name[15];
+            sprintf(setting_name, "ble/profiles/%d", smk_ble_active_profile_index());
+
+            int err = settings_delete(setting_name);
+            if (err) {
+                BLE_DEBUG("Failed to delete setting: %d", err);
+            }
+        }
         k_work_submit(&raise_profile_changed_event_work);
     }
 }
@@ -521,8 +532,8 @@ void ble_stack_start(void)
 
 #if CONFIG_BLE_CLEAR_BOUNDS_ON_START
 // #if 1
-    // Clear bounds
-    BLE_DEBUG("[BLE] Clear bounds...\r\n");
+    // Clear all bounds
+    BLE_DEBUG("[BLE] Clear all bounds...\r\n");
     for (int i = 0; i < 10; i++) {
         bt_unpair(i, NULL);
     }
@@ -568,6 +579,29 @@ void smk_ble_init_task(void)
     // services init
     bas_init();
     smk_hog_service_init();
+}
+
+void smk_ble_deinit(void)
+{
+    // services deinit
+    bas_deinit();
+    smk_hog_service_deinit();
+    // BLE deinit
+    bt_disable();
+    ble_controller_deinit();
+}
+
+void smk_ble_clear_bound(int id)
+{
+    BLE_DEBUG("[BLE] Clear bound %d\r\n", id);
+    bt_unpair(BT_ID_DEFAULT, NULL);
+    char setting_name[15];
+    sprintf(setting_name, "ble/profiles/%d", id);
+
+    int err = settings_delete(setting_name);
+    if (err) {
+        BLE_DEBUG("Failed to delete setting: %d", err);
+    }
 }
 
 int smk_ble_unpair_all()

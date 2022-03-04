@@ -25,6 +25,7 @@ extern "C" {
 #include <zephyr/types.h>
 
 void bas_init(void);
+void bas_deinit(void);
 
 /** @brief Read battery level value.
  *

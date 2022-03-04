@@ -15,6 +15,7 @@ extern "C" {
 #define BT_CHAR_BLE_HID_CTRL_POINT_ATTR_VAL_INDEX (10)
 
 void smk_hog_service_init(void);
+void smk_hog_service_deinit(void);
 int smk_hog_service_notify(struct bt_conn *conn, uint8_t *keyboard_data);
 
 #ifdef __cplusplus

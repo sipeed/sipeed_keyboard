@@ -33,6 +33,7 @@
 #include "smk_spirgb.h"
 #include "smk_spirgb_command.h"
 #include "smk_battery.h"
+#include "smk_endpoints.h"
 
 #include "keyboard/smk_keyscan.h"
 #include "keyboard/smk_keymap.h"
@@ -198,10 +199,8 @@ static void test_env(void) {
 
 int main(void)
 {
-    static StackType_t usb_init_stack[512];
-    static StaticTask_t usb_init_task_h;
-    static StackType_t ble_init_stack[1024];
-    static StaticTask_t ble_init_task_h;
+    static StackType_t endpoints_switch_stack[1024];
+    static StaticTask_t endpoints_switch_task_h;
     uint32_t tmpVal = 0;
 
     bflb_platform_init(0);
@@ -211,11 +210,12 @@ int main(void)
     
     MSG("Sipeed Machine Keyboard start...\r\n");
     HBN_Set_XCLK_CLK_Sel(HBN_XCLK_CLK_XTAL);
-
+    
     flash_init();
+    MSG("[SMK] flash init done\r\n");
     smk_config_init();
-    bt_check_if_ef_ready();
-
+    MSG("[SMK] smk_config_init done\r\n");
+    check_if_ef_ready();
     test_env();
 
 
@@ -231,30 +231,14 @@ int main(void)
 
     MSG("[SMK] Device init...\r\n");
     xTaskCreateStatic(
-        ble_init_task, 
-        (char *)"ble_init", 
-        sizeof(ble_init_stack) / 4,
+        smk_endpoint_switch_task, 
+        (char *)"endpoint_switch_task", 
+        sizeof(endpoints_switch_stack) / 4,
         NULL, 
         10, 
-        ble_init_stack, 
-        &ble_init_task_h);
+        endpoints_switch_stack, 
+        &endpoints_switch_task_h);
 
-    // xTaskCreateStatic(
-    //     usb_init_task, 
-    //     (char *)"usb_init", 
-    //     sizeof(usb_init_stack) / 4, 
-    //     NULL, 
-    //     10, 
-    //     usb_init_stack, 
-    //     &usb_init_task_h);
-
-    // xTaskCreate( 
-    //     usb_init_task, 
-    //     (char *)"usb_init", 
-    //     256, 
-    //     NULL, 
-    //     10, 
-    //     NULL);
 
     xTaskCreate(
         rgb_loop_task, 

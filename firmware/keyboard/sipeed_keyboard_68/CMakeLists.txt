@@ -14,6 +14,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/smk_spirgb.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_event_manager.c
                          ${CMAKE_CURRENT_LIST_DIR}/smk_config_manager.c
+                         ${CMAKE_CURRENT_LIST_DIR}/smk_endpoints.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_color.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_effect.c
                          ${CMAKE_CURRENT_LIST_DIR}/rgbeffect/smk_rgb_layout.c
@@ -48,11 +49,13 @@ set(mains main.c)
 set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/bl702_flash_ble.ld)
 add_definitions(-DCONFIG_BT_DEVICE_NAME="SMK68_BLE")
 set(CONFIG_BT_DIS_SERVER on)
+add_definitions(-DSMK_CONFIG_ENABLE_BLE=1)
+add_definitions(-DSMK_CONFIG_ENABLE_USB=1)
 add_definitions(-DCONFIG_BT_GATT_DIS_PNP=1)
 # add_definitions(-DCONFIG_BT_BAS_SERVER=1)
 add_definitions(-DCONFIG_BLE_CLEAR_BOUNDS_ON_START=0)
 add_definitions(-DCONFIG_BT_SETTINGS=1)
-add_definitions(-DEN_BLE_DEBUG=1)
+add_definitions(-DCONFIG_BAS_REPORT_TIME_MS=1000)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     message("debug mode")
@@ -62,6 +65,7 @@ IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     add_definitions(-DEN_SCAN_DEBUG=1)
     add_definitions(-DEN_EM_DEBUG=1)
     add_definitions(-DEN_BAT_DEBUG=1)
+    add_definitions(-DEN_EP_DEBUG=1)
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 generate_bin()

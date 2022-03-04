@@ -117,9 +117,27 @@ typedef enum {
 } keycode_type;
 
 typedef enum{
-    KF_NO              = 0x00, // Reserved 
-    KF_RGB_MODE_UP     = 0X01, // Keyboard RGB Mode Up
-    KF_RGB_MODE_DOWN   = 0X02, // Keyboard RGB Mode Down
+    KF_NO                  = 0x00, // Reserved 
+    KF_RGB_MODE_UP         = 0x01, // Keyboard RGB Mode Up
+    KF_RGB_MODE_DOWN       = 0x02, // Keyboard RGB Mode Down
+    KF_RGB_OFF             = 0x03, // Keyboard RGB Off
+    KF_RGB_ON              = 0x04, // Keyboard RGB On
+    KF_RGB_BRIGHTNESS_UP   = 0x05, // Keyboard RGB Brightness Up
+    KF_RGB_BRIGHTNESS_DOWN = 0x06, // Keyboard RGB Brightness Down
+    KF_RGB_SPD_UP          = 0x07, // Keyboard RGB Speed Up
+    KF_RGB_SPD_DOWN        = 0x08, // Keyboard RGB Speed Down
+
+    KF_USB                 = 0x10, // Keyboard USB Mode
+
+    KF_BLE_OFF             = 0x20, // Keyboard BLE Off
+    KF_BLE_ON              = 0x21, // Keyboard BLE On
+    KF_BLE_CLEAR_ALL       = 0x22, // Keyboard BLE Clear All
+    KF_BLE_PFL_1           = 0x23, // Keyboard BLE Profile 1
+    KF_BLE_PFL_2           = 0x24, // Keyboard BLE Profile 2
+    KF_BLE_PFL_3           = 0x25, // Keyboard BLE Profile 3
+    KF_BLE_REPAIR          = 0x26, // Keyboard Repair current profile
+
+    KF_FLASH_CLEAR         = 0X30, // Keyboard Flash Clear
 }keyboard_function_type;
 
 #define IS_MOD_KEYS(keycode) (KC_LCTRL <= (keycode) && (keycode) <= KC_RGUI)
@@ -333,8 +351,19 @@ typedef enum{
 #define RGUI      KC_RGUI
 #define RCMD      KC_RGUI
 #define RCmd      KC_RGUI
-#define RGBUP     KF(KF_RGB_MODE_UP)
-#define RGBDWN    KF(KF_RGB_MODE_DOWN)
+#define RGBMU     KF(KF_RGB_MODE_UP)
+#define RGBMD     KF(KF_RGB_MODE_DOWN)
+#define RGBOFF    KF(KF_RGB_OFF)
+#define RGBON     KF(KF_RGB_ON)
+#define RGBBU     KF(KF_RGB_BRIGHTNESS_UP)
+#define RGBBD     KF(KF_RGB_BRIGHTNESS_DOWN)
+#define USB       KF(KF_USB)
+#define BClra     KF(KF_BLE_CLEAR_ALL)
+#define BP1       KF(KF_BLE_PFL_1)
+#define BP2       KF(KF_BLE_PFL_2)
+#define BP3       KF(KF_BLE_PFL_3)
+#define FlsCr     KF(KF_FLASH_CLEAR)
+
 
 #endif
 

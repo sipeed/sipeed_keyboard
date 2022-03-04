@@ -56,8 +56,8 @@ static struct bt_gatt_attr attrs[] = {
                            BT_GATT_PERM_READ, read_blvl, NULL,
                            &battery_level),
     BT_GATT_CCC(blvl_ccc_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
-    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ,
-                       NULL, NULL, NULL),
+    // BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ,
+    //                    NULL, NULL, NULL),
 };
 
 struct bt_gatt_service bas = BT_GATT_SERVICE(attrs);
@@ -65,6 +65,11 @@ struct bt_gatt_service bas = BT_GATT_SERVICE(attrs);
 void bas_init(void)
 {
     bt_gatt_service_register(&bas);
+}
+
+void bas_deinit(void)
+{
+    bt_gatt_service_unregister(&bas);
 }
 
 u8_t bt_gatt_bas_get_battery_level(void)

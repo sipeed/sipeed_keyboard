@@ -1,5 +1,6 @@
 #include "keyboard/smk_keymap.h"
 #include "smk_event_manager.h"
+#include "smk_endpoints.h"
 #include "events/rgb_switch_mode_event.h"
 
 smk_keyboard_map_type * smk_keymap_init(const smk_keyboard_hardware_type * const hardware, QueueHandle_t queue_in, QueueHandle_t queue_out)
@@ -202,6 +203,7 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
     uint8_t layer_id;
     uint8_t keyboard_function_id;
     smk_keycode_type keycode = (smk_keycode_type)event->data;
+    smk_endpoint_type_t endpoint;
     
 
     if (BASIC_KEYCODE <= keycode && keycode <= BASIC_KEYCODE_MAX) {
@@ -254,6 +256,33 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
                         .direction = -1,
                     }));
                     MAP_DEBUG("[SMK][KeyMap] KeyFunc RGB mode down\r\n");
+                    break;
+                case KF_RGB_OFF:
+                    // TODO: Implement RGB off
+                    break;
+                case KF_RGB_ON:
+                    // TODO: Implement RGB on
+                    break;
+                case KF_RGB_BRIGHTNESS_UP:
+                    // TODO: Implement RGB brightness up
+                    break;
+                case KF_RGB_BRIGHTNESS_DOWN:
+                    // TODO: Implement RGB brightness down
+                    break;
+                case KF_USB:
+                    endpoint = SMK_ENDPOINT_USB;
+                    xQueueSend(endpoint_switch_queue, &endpoint, 0);
+                    break;
+                case KF_BLE_PFL_1:
+                    // TODO: Implement BLE PFL 1
+                case KF_BLE_PFL_2:
+                    // TODO: Implement BLE PFL 2
+                case KF_BLE_PFL_3:
+                    endpoint = SMK_ENDPOINT_BLE;
+                    xQueueSend(endpoint_switch_queue, &endpoint, 0);
+                    break;
+                case KF_BLE_CLEAR_ALL:
+                    // TODO: Implement BLE clear all
                     break;
                 default:
                     MAP_DEBUG("[SMK][KeyMap] Undefined KeyFunc id %u @%u\r\n", keyboard_function_id, event->timestamp);

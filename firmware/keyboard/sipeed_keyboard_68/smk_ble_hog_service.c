@@ -238,3 +238,8 @@ void smk_hog_service_init(void)
 {
     bt_gatt_service_register(&smk_hog_srv);
 }
+
+void smk_hog_service_deinit(void)
+{
+    bt_gatt_service_unregister(&smk_hog_srv);
+}

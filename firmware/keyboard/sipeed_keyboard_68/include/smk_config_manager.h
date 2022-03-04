@@ -2,6 +2,7 @@
 #define __SMK_CONFG_MANAGER_H
 
 #include "hal_flash.h"
+#include "smk_endpoints.h"
 
 #ifndef EN_CM_DEBUG
 #define EN_CM_DEBUG 0
@@ -44,11 +45,11 @@ typedef enum{
     SMK_CONFIG_TYPE_MAX
 } smk_config_type_t;
 
-typedef enum{
-    SMK_ENDPOINT_USB = 0,
-    SMK_ENDPOINT_BLE,
-    SMK_ENDPOINT_USB_BLE,
-} smk_endpoint_type_t;
+// typedef enum{
+//     SMK_ENDPOINT_USB = 0,
+//     SMK_ENDPOINT_BLE,
+//     SMK_ENDPOINT_USB_BLE,
+// } smk_endpoint_type_t;
 
 // system config
 typedef struct{

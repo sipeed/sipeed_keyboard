@@ -68,7 +68,7 @@ void smk_battery_update_task(void *pvParameters){
         }))
         BAT_DEBUG("[BAT] battery voltage = %d mV \r\n", voltage);
         BAT_DEBUG("[BAT] battery level = %d%% \r\n", level);
-        vTaskDelay(10000);
+        vTaskDelay(CONFIG_BAS_REPORT_TIME_MS);
     }
 exit:
     vTaskDelete(NULL);

@@ -198,15 +198,15 @@ struct device *usb_device;
 
 extern struct device *usb_dc_init(void);
 
-static void smk_usb_open()
+void smk_usb_open()
 {
-    usb_device = usb_dc_init();
+    device_open(usb_device, 0);
     if (usb_device) {
         device_control(usb_device, DEVICE_CTRL_SET_INT, (void *)(USB_EP1_DATA_IN_IT |USB_EP2_DATA_OUT_IT | USB_EP3_DATA_OUT_IT | USB_EP5_DATA_IN_IT| USB_EP6_DATA_IN_IT |USB_EP7_DATA_IN_IT));
     }
 }
 
-static void smk_usb_close()
+void smk_usb_close()
 {
     if (usb_device) {
         device_close(usb_device);
@@ -217,8 +217,5 @@ void usb_init(){ //task init
     usbd_desc_register(sipeed_keyboard_descriptor);
     smk_cdc_init();
     smk_hid_usb_init();
-
-    if (smk_system_config->endpoint == SMK_ENDPOINT_USB || smk_system_config->endpoint == SMK_ENDPOINT_USB_BLE) {
-        smk_usb_open();
-    }
+    usb_device = usb_dc_init();
 }
