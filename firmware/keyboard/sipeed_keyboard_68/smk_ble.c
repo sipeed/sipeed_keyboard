@@ -9,6 +9,7 @@
 #include "events/battery_update_event.h"
 #include "events/ble_active_profile_changed.h"
 #include "easyflash.h"
+#include "hal_common.h"
 
 static uint8_t isRegister = 0;
 struct bt_conn *default_conn = NULL;
@@ -16,6 +17,7 @@ struct bt_conn *default_conn = NULL;
 static struct bt_conn *auth_passkey_entry_conn;
 static uint8_t passkey_entries[6] = {0, 0, 0, 0, 0, 0};
 static uint8_t passkey_digit = 0;
+static char device_name[16] = {0};
 
 enum advertising_type {
     SMK_ADV_NONE,
@@ -37,12 +39,14 @@ static struct bt_le_adv_param adv_param = {
 
 static struct smk_ble_profile profiles[PROFILE_COUNT];
 static uint8_t active_profile;
+#define ENV_BLE_ACTIVE_PROFILE "BLE_ACTIVE_PROFILE"
+#define ENV_BLE_ID_SAVE_FLAG   "ble/id_saved"
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
 static const struct bt_data smk_ble_ad[] = {
-    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
+    BT_DATA(BT_DATA_NAME_COMPLETE, device_name, DEVICE_NAME_LEN + 5),
     BT_DATA_BYTES(BT_DATA_GAP_APPEARANCE, 0xC1, 0x03),
 
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
@@ -79,8 +83,6 @@ void set_profile_address(uint8_t index, const bt_addr_le_t *addr) {
     sprintf(setting_name, "ble/profiles/%d", index);
     BLE_DEBUG("[BLE] Setting profile addr for %s to %s\r\n", log_strdup(setting_name), log_strdup(addr_str));
     ef_set_env_blob(setting_name, &profiles[index], sizeof(struct smk_ble_profile));
-    // settings_save_one(setting_name, &profiles[index], sizeof(struct smk_ble_profile));
-    // smk_ble_profile_save_one(setting_name, &profiles[index], sizeof(struct smk_ble_profile));// TODO:
 
     k_work_submit(&raise_profile_changed_event_work);
 }
@@ -198,15 +200,25 @@ int smk_ble_clear_bonds() {
         set_profile_address(active_profile, BT_ADDR_LE_ANY);
     }
 
-    update_advertising();
+    for (int i = 0; i < PROFILE_COUNT; i++) {
+        char setting_name[15];
+        sprintf(setting_name, "ble/profiles/%d", i);
 
+        int err = settings_delete(setting_name);
+        if (err) {
+            BLE_DEBUG("Failed to delete setting: %d", err);
+        }
+    }
+
+    update_advertising();
+    hal_system_reset(); // FIXME:NOW Unable to restore SC so we reset the system.
     return 0;
 }
 
 int smk_ble_active_profile_index() {return active_profile;}
 
 static int ble_save_profile(){
-    //TODO SAVE ACTIVE PROFILE INDEX
+    ef_set_env_blob(ENV_BLE_ACTIVE_PROFILE, &active_profile, sizeof(active_profile));
     return 0;
 }
 
@@ -252,7 +264,7 @@ static bool is_conn_active_profile(const struct bt_conn *conn) {
 static void smk_ble_connected(struct bt_conn *conn, uint8_t err)
 {
     char addr[BT_ADDR_LE_STR_LEN];
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr)); // TODO: save addr / add wl
+    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr)); 
 
     advertising_status = SMK_ADV_NONE;
 
@@ -263,17 +275,6 @@ static void smk_ble_connected(struct bt_conn *conn, uint8_t err)
     }
 
     BLE_DEBUG("[BLE] Connected: %s \r\n", log_strdup(addr));
-
-    // int tx_octets = 0x00fb;
-    // int tx_time = 0x0848;
-
-    // err = bt_le_set_data_len(conn, tx_octets, tx_time);
-    // if (!err) {
-    //     BLE_DEBUG("[BLE] ble set data length success\r\n");
-    // } else {
-    //     BLE_DEBUG("[BLE] ble set data length failure, err: %d\r\n", err);
-    // }
-
 
     err = bt_conn_le_param_update(conn, BT_LE_CONN_PARAM(0x0006, 0x000c, 30, 400));
     if (err) {
@@ -291,10 +292,6 @@ static void smk_ble_connected(struct bt_conn *conn, uint8_t err)
         k_work_submit(&raise_profile_changed_event_work);
     }
 
-    // if (!default_conn) {
-    //     default_conn = conn;
-    // }
-
 }
 
 static void smk_ble_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -304,10 +301,6 @@ static void smk_ble_disconnected(struct bt_conn *conn, uint8_t reason)
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     BLE_DEBUG("[BLE] Disconnected: %s (reason %u) \r\n", log_strdup(addr), reason);
 
-    // if (default_conn == conn) {
-    //     default_conn = NULL;
-    // }
-    // smk_ble_start_adv(); 
     k_work_submit(&update_advertising_work);
     if (is_conn_active_profile(conn)){
         BLE_DEBUG("[BLE] Disconnected from active profile\r\n");
@@ -416,22 +409,6 @@ static struct bt_conn_auth_cb smk_ble_auth_cb_display = {
     .cancel = auth_cancel,
 };
 
-// void smk_ble_services_init()
-// {
-//     if (!isRegister) {
-//         isRegister = 1;
-//         bt_conn_cb_register(&conn_callbacks);
-
-//         bt_conn_auth_cb_register(&smk_ble_auth_cb_display);
-
-//         // dis_init(0x02, 0xe502, 0xa111, 0x0210); //dis
-//         bas_init();
-//         smk_hog_service_init();
-        
-//     }
-//     BLE_DEBUG("[BLE] Services init\r\n");
-// }
-
 int smk_ble_hid_notify(uint8_t *data)
 {
     bt_addr_le_t *addr;
@@ -449,30 +426,6 @@ int smk_ble_hid_notify(uint8_t *data)
     return err;
 }
 
-// int smk_ble_start_adv(void)
-// {
-//     struct bt_le_adv_param adv_param = {
-//         //options:3, connectable undirected, adv one time
-//         .options = (BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_NAME | BT_LE_ADV_OPT_ONE_TIME),
-//         .interval_min = BT_GAP_ADV_FAST_INT_MIN_2,
-//         .interval_max = BT_GAP_ADV_FAST_INT_MAX_2,
-//     };
-
-//     char *adv_name = SMK_CONFIG_BLE_DEVICE_NAME; // This name must be the same as adv_name in ble_central
-    
-//     uint8_t data[1] = {(BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)};
-//     uint8_t data_uuid[2] = {0x12, 0x18};//0x1812
-//     uint8_t data_appearance[2] = {0xC1, 0x03};//0x03C1
-//     struct bt_data adv_data[] = {
-//         BT_DATA(BT_DATA_FLAGS, data, 1),
-//         BT_DATA(BT_DATA_UUID16_ALL, data_uuid, sizeof(data_uuid)),
-//         BT_DATA(BT_DATA_GAP_APPEARANCE, data_appearance, sizeof(data_appearance)),
-//         BT_DATA(BT_DATA_NAME_COMPLETE, adv_name, strlen(adv_name)),
-//     };
-//     BLE_DEBUG("[BLE] ble_start_adv...\r\n");
-//     return bt_le_adv_start(&adv_param, adv_data, ARRAY_SIZE(adv_data), NULL, 0);
-// }
-
 static void smk_ble_read_local_address()
 {
     bt_addr_le_t local_pub_addr;
@@ -481,11 +434,15 @@ static void smk_ble_read_local_address()
 
     bt_get_local_public_address(&local_pub_addr);
     bt_addr_le_to_str(&local_pub_addr, le_addr, sizeof(le_addr));
+    sprintf(device_name, "%s_%.2s%.2s", DEVICE_NAME, le_addr, le_addr + 3);
     BLE_DEBUG("[BLE] Local public addr : %s\r\n", le_addr);
 
     bt_get_local_ramdon_address(&local_ram_addr);
     bt_addr_le_to_str(&local_ram_addr, le_addr, sizeof(le_addr));
     BLE_DEBUG("[BLE] Local random addr : %s\r\n", le_addr);
+
+    bt_set_name(device_name);
+    BLE_DEBUG("[BLE] Device name : %s\r\n", device_name);
 }
 
 
@@ -526,12 +483,11 @@ void ble_stack_start(void)
         BLE_DEBUG("[BLE] bt_enable failed: %d\r\n", err);
     }
 
-#ifndef CONFIG_BLE_CLEAR_BOUNDS_ON_START
-#define CONFIG_BLE_CLEAR_BOUNDS_ON_START 0
+#ifndef SMK_CONFIG_BLE_CLEAR_BOUNDS_ON_START
+#define SMK_CONFIG_BLE_CLEAR_BOUNDS_ON_START 0
 #endif
 
-#if CONFIG_BLE_CLEAR_BOUNDS_ON_START
-// #if 1
+#if SMK_CONFIG_BLE_CLEAR_BOUNDS_ON_START
     // Clear all bounds
     BLE_DEBUG("[BLE] Clear all bounds...\r\n");
     for (int i = 0; i < 10; i++) {
@@ -546,23 +502,33 @@ void ble_stack_start(void)
             BLE_DEBUG("Failed to delete setting: %d", err);
         }
     }
+#endif // SMK_CONFIG_BLE_CLEAR_BOUNDS_ON_START
 
-#endif // CONFIG_BLE_CLEAR_BOUNDS_ON_START
+#ifndef SMK_CONFIG_BLE_RESET_ID 
+#define SMK_CONFIG_BLE_RESET_ID 0
+#endif
+
     bool id_saved_flag = false;
-    if(!ef_get_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag), NULL))
+#if !SMK_CONFIG_BLE_RESET_ID 
+    if(!ef_get_env_blob(ENV_BLE_ID_SAVE_FLAG, &id_saved_flag, sizeof(id_saved_flag), NULL))
     {
-        ef_set_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag));
+        ef_set_env_blob(ENV_BLE_ID_SAVE_FLAG, &id_saved_flag, sizeof(id_saved_flag));
     }
+#endif // !SMK_CONFIG_BLE_RESET_ID
     if(!id_saved_flag)
     {
         bt_id_create(NULL, NULL);
         bt_settings_save_id();
         id_saved_flag = true;
-        ef_set_env_blob("ble/id_saved", &id_saved_flag, sizeof(id_saved_flag));
+        ef_set_env_blob(ENV_BLE_ID_SAVE_FLAG, &id_saved_flag, sizeof(id_saved_flag));
     }
     smk_ble_read_local_address();
     load_profiles();
-
+    if(!ef_get_env_blob(ENV_BLE_ACTIVE_PROFILE, &active_profile, sizeof(active_profile), NULL))
+    {
+        active_profile = 0;
+    }
+    BLE_DEBUG("[BLE] active_profile: %d\r\n", active_profile);
 }
 
 void smk_ble_init_task(void)
@@ -574,7 +540,6 @@ void smk_ble_init_task(void)
     BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_SMP: %d \r\n",IS_ENABLED(CONFIG_BT_SMP));
     BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_SETTINGS: %d \r\n",IS_ENABLED(CONFIG_BT_SETTINGS));
     BLE_DEBUG("[BLE MACRO TEST] CONFIG_BT_BONDABLE: %d \r\n",IS_ENABLED(CONFIG_BT_BONDABLE));
-    
 
     // services init
     bas_init();
@@ -591,7 +556,7 @@ void smk_ble_deinit(void)
     ble_controller_deinit();
 }
 
-void smk_ble_clear_bound(int id)
+void smk_ble_clear_bond(int id)
 {
     BLE_DEBUG("[BLE] Clear bound %d\r\n", id);
     bt_unpair(BT_ID_DEFAULT, NULL);

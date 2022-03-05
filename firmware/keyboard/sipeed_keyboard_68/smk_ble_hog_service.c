@@ -153,6 +153,13 @@ static ssize_t write_output_report(struct bt_conn *conn,
                                    uint16_t len, uint16_t offset)
 {
     BLE_DEBUG("[BLE][HOG SRV] write output report len: %d\r\n", len);
+    extern uint8_t shared_kb_led;
+    uint8_t *data = (uint8_t *)buf;
+    if(len==1)
+        shared_kb_led=*data;
+    if(len==2)
+        shared_kb_led=data[1];
+    BLE_DEBUG("[BLE][HOG SRV] write output report: %d\r\n", shared_kb_led);
     return len;
 }
 

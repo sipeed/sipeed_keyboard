@@ -2,6 +2,7 @@
 #include "smk_event_manager.h"
 #include "smk_endpoints.h"
 #include "events/rgb_switch_mode_event.h"
+#include "smk_ble.h"
 
 smk_keyboard_map_type * smk_keymap_init(const smk_keyboard_hardware_type * const hardware, QueueHandle_t queue_in, QueueHandle_t queue_out)
 {
@@ -274,15 +275,22 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
                     xQueueSend(endpoint_switch_queue, &endpoint, 0);
                     break;
                 case KF_BLE_PFL_1:
-                    // TODO: Implement BLE PFL 1
+                    endpoint = SMK_ENDPOINT_BLE;
+                    xQueueSend(endpoint_switch_queue, &endpoint, 0);
+                    smk_ble_prof_select(0);
+                    break;
                 case KF_BLE_PFL_2:
-                    // TODO: Implement BLE PFL 2
+                    endpoint = SMK_ENDPOINT_BLE;
+                    xQueueSend(endpoint_switch_queue, &endpoint, 0);
+                    smk_ble_prof_select(1);
+                    break;
                 case KF_BLE_PFL_3:
                     endpoint = SMK_ENDPOINT_BLE;
                     xQueueSend(endpoint_switch_queue, &endpoint, 0);
+                    smk_ble_prof_select(2);
                     break;
                 case KF_BLE_CLEAR_ALL:
-                    // TODO: Implement BLE clear all
+                    smk_ble_clear_bonds();
                     break;
                 default:
                     MAP_DEBUG("[SMK][KeyMap] Undefined KeyFunc id %u @%u\r\n", keyboard_function_id, event->timestamp);
