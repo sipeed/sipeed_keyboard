@@ -2,6 +2,7 @@ import hid
 import struct
 import threading
 import queue
+import platform
 import sys
 import time
 import cv2
@@ -145,13 +146,20 @@ class keyboard_ctl:
         print("Openning HID device with VID = 0x%X" % self.USB_VID)
         while self.hidruning:
             # print("in while")
+            readdev=None
+            writedev=None
+            reportid=0
             for dict in hid.enumerate(self.USB_VID):
                 time.sleep(0.1)
                 print(dict)
                 if dict["interface_number"] != self.UID_interface_number:
                     continue
                 dev = hid.device()
-
+                if(platform.system()=='Windows'):
+                    print('windows, boom!')
+                    path=str(dict["path"].decode("UTF-8"))
+                    path=(path.split('{')[0])
+                    reportid=int(path[-5:-1])+1
                 try:
                     dev.open_path(dict['path'])
                 except OSError:
@@ -159,25 +167,44 @@ class keyboard_ctl:
                     continue
                 dev.set_nonblocking(True)
                 if dev:
-                    self.lock=threading.Lock()
-                    self.outputdatas=queue.Queue()
-                    self.inputdatas=queue.Queue()
-                    self.isdeviceoen= True
-                    try:
-                        while self.hidruning:
-                            if not self.outputdatas.empty():
-                                dataout = self.outputdatas.get()
-                                sent = dev.write(dataout)
-                                # print("output:{}bytes:{}".format(sent, dataout))
-                            str_in = dev.read(64)
-                            if len(str_in) > 0:
-                                # print("input:{}bytes:{}".format(len(str_in), str_in))
-                                self.inputdatas.put(str_in)
-                        dev.close()
-                    except OSError:
-                        print("error"*20)
-                        self.isdeviceoen= False
+                    if(reportid==0):
+                        readdev=writedev=dev
                         break
+                    else:
+                        if(reportid==1):
+                            readdev=dev
+                        if(reportid==2):
+                            writedev=dev
+            if not(readdev!=None and writedev !=None):
+                time.sleep(1)
+                continue
+            self.lock=threading.Lock()
+            self.outputdatas=queue.Queue()
+            self.inputdatas=queue.Queue()
+            self.isdeviceoen= True
+            try:
+                while self.hidruning:
+                    if not self.outputdatas.empty():
+                        dataout = self.outputdatas.get()
+                        if(dataout[0]==1):
+                            sent = readdev.write(dataout)
+                        else:
+                            sent = writedev.write(dataout)
+                        # print("output:{}bytes:{}".format(sent, dataout))
+                    str_in = readdev.read(64)
+                    if len(str_in) > 0:
+                        # print("input:{}bytes:{}".format(len(str_in), str_in))
+                        self.inputdatas.put(str_in)
+                    str_in = writedev.read(64)
+                    if len(str_in) > 0:
+                        # print("input:{}bytes:{}".format(len(str_in), str_in))
+                        self.inputdatas.put(str_in)
+                readdev.close()
+                writedev.close()
+            except OSError:
+                print("error"*20)
+                self.isdeviceoen= False
+                continue
 
     def init_hid_interface(self):
         if self.thid.is_alive():

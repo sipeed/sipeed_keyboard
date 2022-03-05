@@ -83,11 +83,50 @@ def testvideo(kb):
             kb.stop_and_wait()
             sys.exit(0)
 
+import math
+def calcshader(code:str,led:keyboard_led,time:float):
+    data=bytearray(0)
+    id=0
+    for l in led.keyledpos:
+        globalsParameter = {'__builtins__': None,'print':print,'math':math}
+        localsParameter={'x':l[0],'y':l[1],'time':time,'index':id,'kbw':led.keyw,'kbh':led.keyh,'rgb':(0,0,0)}
+        try:
+            exec(code,globalsParameter,localsParameter)
+        except Exception as err:
+            print("{}".format(err))
+            t1=type(err)
+            t2=type(ValueError())
+            if t1!=t2:
+                break
+        rgb=localsParameter['rgb']
+        data+=struct.pack('BBBB', max(0,min(int(rgb[0]*255),255)), max(0,min(int(rgb[1]*255),255)), max(0,min(int(rgb[2]*255),255)), 0)
+    return data
+
+
+shadercode='''
+rx=(x-kbw/2)/kbh
+ry=(y-kbh/2)/kbh
+r=math.sin(rx*3.14+time)
+g=math.sin(ry*3.14+time)
+b=math.sin(math.sqrt(rx*rx+ry*ry)*3.14+time)
+rgb=((r+1)/2,(g+1)/2,(b+1)/2)
+'''
 
 kb = keyboard_ctl()
-
+leds=keyboard_led(kb)
+# times=0
+# size=30
+# while True:
+#     data=calcshader(shadercode,leds,times)
+#     visual = leds.getpreview(data, (size * leds.keyw, size * leds.keyh))
+#     cv2.imshow("vis", visual)
+#     cv2.waitKey(20)
+#     times+=0.02
+# print(data)
 kb.init_hid_interface()
-testvideo(kb)
+while True:
+    time.sleep(1)
+# testvideo(kb)
 # testreadback(kb)
     # try:
     #     datain=input("set index:")
