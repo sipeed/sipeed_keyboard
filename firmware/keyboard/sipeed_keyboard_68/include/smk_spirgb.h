@@ -110,6 +110,10 @@ typedef struct RGB_COLOR_DESC {
 } RGB_COLOR_DESC;
 extern RGB_COLOR_DESC rgb_color_descriptor[10]; 
 
+void RGB_Set_Global_Enable(uint8_t enable);
+void RGB_Set_Brightness_level_up();
+void RGB_Set_Brightness_level_down();
+void RGB_Set_Brightness_level(uint8_t level);
 DRGB rgb_alpha(DRGB source, uint8_t alpha);
 void rgb_loop_task(void *pvParameters);
 

@@ -11,11 +11,13 @@
 #include <math.h>
 
 #include "smk_hid_protocol.h"
+#include "easyflash.h"
 
 
 extern const int CAPS_KEY_LED;
 extern const float LED_GAMMA;
 uint8_t shared_kb_led=0;
+uint8_t rgb_enable=1;
 
 static uint8_t gammalist[256];
 
@@ -25,6 +27,14 @@ static void init_gammalist() {
         float b=powf(a,LED_GAMMA)*255;
         gammalist[i]=b>255?255:b;
     }
+}
+
+#define ENV_RGB_GLOBAL_ENABLE "RGB_GLOBAL_ENABLE"
+#define ENV_RGB_GLOBAL_BRIGHTNESS_LEVEL "RGB_BR_LEVEL"
+
+void RGB_Set_Global_Enable(uint8_t enable) {
+    rgb_enable = enable;
+    ef_set_env_blob(ENV_RGB_GLOBAL_ENABLE, &enable, sizeof(enable));
 }
 
 #if(SMK_RGB_USE_DMA)
@@ -93,6 +103,24 @@ void RGB_Transmit(struct device *spi, DRGB * rgbbuffer) {
 
 /* static */ int rgb_mode = 0;
 /* static */ uint8_t rgb_global_brightness = 120;
+uint8_t rgb_global_brightness_level = 2;
+uint8_t rgb_brightness_level_list[5] = {60, 90, 120, 150, 180};
+
+void RGB_Set_Brightness_level(uint8_t level) {
+    rgb_global_brightness_level = level;
+    ef_set_env_blob(ENV_RGB_GLOBAL_BRIGHTNESS_LEVEL, &level, sizeof(level));
+    rgb_global_brightness = rgb_brightness_level_list[level];
+}
+
+void RGB_Set_Brightness_level_up() {
+    rgb_global_brightness_level = (rgb_global_brightness_level+1) > 4 ? 4 : (rgb_global_brightness_level+1);
+    RGB_Set_Brightness_level(rgb_global_brightness_level);
+}
+
+void RGB_Set_Brightness_level_down() {
+    rgb_global_brightness_level = (rgb_global_brightness_level-1) < 0 ? 0 : (rgb_global_brightness_level-1);
+    RGB_Set_Brightness_level(rgb_global_brightness_level);
+}
 
 DRGB RGB_Buffer[RGB_LENGTH];
 
@@ -155,6 +183,9 @@ void rgb_loop_task(void *pvParameters)
     uint32_t i;
 
     init_gammalist();
+    ef_get_env_blob(ENV_RGB_GLOBAL_ENABLE, &rgb_enable, sizeof(rgb_enable), NULL);
+    ef_get_env_blob(ENV_RGB_GLOBAL_BRIGHTNESS_LEVEL, &rgb_global_brightness_level, sizeof(rgb_global_brightness_level), NULL);
+    RGB_Set_Brightness_level(rgb_global_brightness_level);
 
     spi_register(SPI0_INDEX, "spi");
     spi = device_find("spi");
@@ -176,6 +207,19 @@ void rgb_loop_task(void *pvParameters)
 
 	for (;;) {
 		vTaskDelay(10);
+        if (!rgb_enable) {
+            for (i = 0; i < RGB_LENGTH; i++) {
+                RGB_Buffer[i].word = 0;
+            }
+            #if(SMK_RGB_USE_DMA)
+                    RGB_DMA_Transmit(spi, dma_ch3, RGB_Buffer);
+            #else
+                    vTaskEnterCritical();
+                    RGB_Transmit(spi, RGB_Buffer);
+                    vTaskExitCritical();
+            #endif	
+            continue;
+        }
 
 		if (rgb_mode < RGB_MODE_COUNT) {
 			
@@ -187,12 +231,10 @@ void rgb_loop_task(void *pvParameters)
 			int ceffid = ceff->eff_id;
 			int ceffoffset = ceff->time_offset;
 			rgb_effect_descriptor[ceffid].eff_func(ceff, timestamp - ceffoffset);
-		
-			if (rgb_global_brightness != 255) {
-				for (i = 0; i < RGB_LENGTH; i++) {
-					RGB_Buffer[i] = rgb_alpha(RGB_Buffer[i], rgb_global_brightness);
-				}
-			}
+
+            for (i = 0; i < RGB_LENGTH; i++) {
+                RGB_Buffer[i] = rgb_alpha(RGB_Buffer[i], rgb_global_brightness);
+            }
 		}
 		
 		timestamp ++;

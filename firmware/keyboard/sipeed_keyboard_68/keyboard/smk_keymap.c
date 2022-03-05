@@ -3,6 +3,7 @@
 #include "smk_endpoints.h"
 #include "events/rgb_switch_mode_event.h"
 #include "smk_ble.h"
+#include "smk_spirgb.h"
 
 smk_keyboard_map_type * smk_keymap_init(const smk_keyboard_hardware_type * const hardware, QueueHandle_t queue_in, QueueHandle_t queue_out)
 {
@@ -259,16 +260,16 @@ void smk_keymap_handle_keycode(smk_keyboard_map_type *map, const smk_event_type 
                     MAP_DEBUG("[SMK][KeyMap] KeyFunc RGB mode down\r\n");
                     break;
                 case KF_RGB_OFF:
-                    // TODO: Implement RGB off
+                    RGB_Set_Global_Enable(0);
                     break;
                 case KF_RGB_ON:
-                    // TODO: Implement RGB on
+                    RGB_Set_Global_Enable(1);
                     break;
                 case KF_RGB_BRIGHTNESS_UP:
-                    // TODO: Implement RGB brightness up
+                    RGB_Set_Brightness_level_up();
                     break;
                 case KF_RGB_BRIGHTNESS_DOWN:
-                    // TODO: Implement RGB brightness down
+                    RGB_Set_Brightness_level_down();
                     break;
                 case KF_USB:
                     endpoint = SMK_ENDPOINT_USB;
