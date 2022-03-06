@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from kbled import keyboard_led
 from kbapi import keyboard_ctl
-
+from kboled import keyboard_oled
 # while hidruning:
 #     try:
 #         datain=input("set data:")
@@ -82,7 +82,34 @@ def testvideo(kb):
         except KeyboardInterrupt:
             kb.stop_and_wait()
             sys.exit(0)
+def testvideo_oled(kb,id,filename='badapple.mp4'):
+    oleds = keyboard_oled(kb)
 
+    video=cv2.VideoCapture()
+    video.open(filename)
+    # video.open('buy.mp4')
+    #video.open('/sharehdd/Movies/《终结者3》.RMVB')
+
+
+
+    while kb.hidruning:
+        try:
+            ret, frame1 = video.read()
+            if(ret):
+                kb.wait_for_kb()
+                oleds.sendframe(id,frame1)
+                oleds.submit(1<<id)
+                fps=video.get(cv2.CAP_PROP_FPS)
+                cv2.imshow("video",frame1)
+                # cv2.waitKey(int(10000/fps))
+                # cv2.waitKey(1)
+            else:
+                video.set(cv2.CAP_PROP_POS_FRAMES,0)
+                # kb.stop_and_wait()
+                # sys.exit(0)
+        except KeyboardInterrupt:
+            kb.stop_and_wait()
+            sys.exit(0)
 import math
 def calcshader(code:str,led:keyboard_led,time:float):
     data=bytearray(0)
@@ -114,6 +141,7 @@ rgb=((r+1)/2,(g+1)/2,(b+1)/2)
 
 kb = keyboard_ctl()
 leds=keyboard_led(kb)
+oleds=keyboard_oled(kb)
 # times=0
 # size=30
 # while True:
@@ -124,6 +152,16 @@ leds=keyboard_led(kb)
 #     times+=0.02
 # print(data)
 kb.init_hid_interface()
+t1=threading.Thread(target=testvideo_oled,args=(kb,0,'badapple.mp4'))
+t2=threading.Thread(target=testvideo_oled,args=(kb,1,'buy.mp4'))
+t3=threading.Thread(target=testvideo_oled,args=(kb,2,'buy.mp4'))
+t4=threading.Thread(target=testvideo_oled,args=(kb,3,'badapple.mp4'))
+t1.start()
+# t2.start()
+# time.sleep(2)
+# t3.start()
+# t4.start()
+# testvideo_oled(kb,0)
 while True:
     time.sleep(1)
 # testvideo(kb)

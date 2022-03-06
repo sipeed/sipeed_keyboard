@@ -33,6 +33,7 @@
 #include "smk_spirgb.h"
 #include "smk_spirgb_command.h"
 #include "smk_battery.h"
+#include "smk_oled.h"
 #include "smk_endpoints.h"
 
 #include "keyboard/smk_keyscan.h"
@@ -291,6 +292,14 @@ int main(void)
         smk_battery_update_task, // pxTaskCode
         "Battery Update Task",   // pcName
         384,                     // usStackDepth
+        NULL,                    // pvParameters
+        10,    // uxPriority
+        NULL                     // pxCreateTask
+    );
+    xTaskCreate(
+        smk_oled_demon_task, // pxTaskCode
+        "OLED Demon Task",   // pcName
+        1024,                     // usStackDepth
         NULL,                    // pvParameters
         10,    // uxPriority
         NULL                     // pxCreateTask
