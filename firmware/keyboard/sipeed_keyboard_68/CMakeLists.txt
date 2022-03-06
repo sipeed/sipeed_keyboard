@@ -24,6 +24,7 @@ set(TARGET_REQUIRED_SRCS
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_tapengine.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_defer_g.c
                          ${CMAKE_CURRENT_LIST_DIR}/keyboard/smk_debounce_eager_defer_pk.c
+                         ${CMAKE_CURRENT_LIST_DIR}/smk_oled.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/events/system_init_event.c
                          ${CMAKE_CURRENT_LIST_DIR}/events/rgb_switch_mode_event.c
                          ${CMAKE_CURRENT_LIST_DIR}/events/battery_update_event.c
