@@ -310,12 +310,12 @@ void smk_oled_init(){
 QueueHandle_t g_smk_oled_sem;
 unsigned int g_smk_oled_which_to_update=0;
 int smk_oled_api_write(uint32_t addr,uint8_t* data,uint8_t len){
-    g_smk_oled_which_to_update=data[0];
+    g_smk_oled_which_to_update|=data[0];
     xSemaphoreGive(g_smk_oled_sem);
     return 1;
 }
 int smk_oled_api_read(uint32_t addr,uint8_t* data,uint8_t len){
-    g_smk_oled_which_to_update=data[0];
+    g_smk_oled_which_to_update|=data[0];
     xSemaphoreGive(g_smk_oled_sem);
     return 1;
 }
@@ -373,19 +373,23 @@ static hid_data_reg_t oled_key4_api={
         xSemaphoreTake(g_smk_oled_sem,0);
         if(g_smk_oled_which_to_update&1){
             g_oled[0]->OLED_Refresh();
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            g_smk_oled_which_to_update&=~1;
+//            vTaskDelay(100/portTICK_PERIOD_MS);
         }
         if(g_smk_oled_which_to_update&2){
             g_oled[1]->OLED_Refresh();
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            g_smk_oled_which_to_update&=~2;
+//            vTaskDelay(100/portTICK_PERIOD_MS);
         }
         if(g_smk_oled_which_to_update&4){
             g_oled[2]->OLED_Refresh();
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            g_smk_oled_which_to_update&=~4;
+//            vTaskDelay(100/portTICK_PERIOD_MS);
         }
         if(g_smk_oled_which_to_update&8){
             g_oled[3]->OLED_Refresh();
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            g_smk_oled_which_to_update&=~8;
+//            vTaskDelay(100/portTICK_PERIOD_MS);
         }
     }
     vTaskDelete(NULL);
