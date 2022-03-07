@@ -370,7 +370,7 @@ static hid_data_reg_t oled_key4_api={
     hid_data_protocal_reg(&oled_key3_api);
     hid_data_protocal_reg(&oled_key4_api);
     while(1){
-        xSemaphoreTake(g_smk_oled_sem,0);
+        xSemaphoreTake(g_smk_oled_sem,portMAX_DELAY);
         if(g_smk_oled_which_to_update&1){
             g_oled[0]->OLED_Refresh();
             g_smk_oled_which_to_update&=~1;
