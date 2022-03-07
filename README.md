@@ -100,5 +100,12 @@ make build BOARD=sipeed_keyboard APP=sipeed_keyboard_68 APP_DIR=../keyboard
 * 可以加 QQ 群参与讨论（ 933963409 ）
 <img height=600 src="https://cdn.sipeed.com/public/sipeed_keyboard_qq_qrcode.jpg">
 
+## 致谢
+
+本项目在开发过程中参考/使用了下列项目中的代码
+- [Zephyr™ Mechanical Keyboard (ZMK) Firmware](https://github.com/zmkfirmware/zmk)
+- [Quantum Mechanical Keyboard Firmware](https://github.com/qmk/qmk_firmware)
+- [EasyFlash](https://github.com/armink/EasyFlash)
+
 
 
