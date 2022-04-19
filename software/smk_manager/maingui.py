@@ -273,5 +273,8 @@ if __name__ == '__main__':
     qss_sheet = qss.read()
     qss.close()
     class_instance.setStyleSheet(qss_sheet)
+    rulePath = os.path.abspath("./99-sipeedkb.rules")
+    if(os.path.exists("/etc/udev/99-sipeedkb.rules") == False):
+        os.system("pkexec cp "+rulePath+" /etc/udev/")
     class_instance.show()
     sys.exit(app.exec())
