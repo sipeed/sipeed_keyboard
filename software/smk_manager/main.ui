@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>569</width>
+    <height>444</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SMK Manager</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="5" column="1">
+     <widget class="QPushButton" name="stop_btn">
+      <property name="text">
+       <string>Stop</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QPushButton" name="connect_btn">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Connect</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Preview:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" rowspan="2">
+     <widget class="QGraphicsView" name="preview_box">
+      <property name="minimumSize">
+       <size>
+        <width>300</width>
+        <height>100</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="3" colspan="2">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Keyboard Control Panel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" colspan="2">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="builtin_tab">
+       <attribute name="title">
+        <string>Built-in</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="previous_mode">
+          <property name="text">
+           <string>Previous</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="next_mode">
+          <property name="text">
+           <string>Next</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QPushButton" name="mode_set_btn">
+          <property name="text">
+           <string>Set</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLCDNumber" name="mode_id">
+          <property name="digitCount">
+           <number>3</number>
+          </property>
+          <property name="intValue" stdset="0">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_3">
+          <property name="font">
+           <font>
+            <pointsize>30</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Mode</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="video_tab">
+       <attribute name="title">
+        <string>Video</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="3" column="2">
+         <widget class="QPushButton" name="video_play_btn">
+          <property name="text">
+           <string>Play</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Video File Path or Stream link:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="video_link_box"/>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPushButton" name="browsebtn">
+          <property name="text">
+           <string>Browse...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="shader_tab">
+       <attribute name="title">
+        <string>Custom</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="0" rowspan="4">
+         <widget class="QTextEdit" name="shaderTextbox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="shader_play_btn">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Shader:</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="oled_tab">
+       <attribute name="title">
+        <string>OLED</string>
+       </attribute>
+       <widget class="QTabWidget" name="oled_key">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>541</width>
+          <height>191</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="key1_tab">
+         <attribute name="title">
+          <string>key 1</string>
+         </attribute>
+         <widget class="QPushButton" name="key_1">
+          <property name="geometry">
+           <rect>
+            <x>310</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="img_b_1">
+          <property name="geometry">
+           <rect>
+            <x>150</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="oled_preview_1">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>19</y>
+            <width>70</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Preview</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="key_1_text">
+          <property name="geometry">
+           <rect>
+            <x>150</x>
+            <y>30</y>
+            <width>151</width>
+            <height>25</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QLabel" name="key_combo_1">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>60</y>
+            <width>121</width>
+            <height>31</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>key combination</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_12">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>30</y>
+            <width>21</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>or</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="key_1_text_set">
+          <property name="geometry">
+           <rect>
+            <x>390</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set(text)</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="key_1_c_set">
+          <property name="geometry">
+           <rect>
+            <x>230</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set(func)</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="key2_tab">
+         <attribute name="title">
+          <string>key 2</string>
+         </attribute>
+         <widget class="QLabel" name="key_combo_2">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>60</y>
+            <width>121</width>
+            <height>31</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>key combination</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="key_2_c_set">
+          <property name="geometry">
+           <rect>
+            <x>230</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set(func)</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="oled_preview_2">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>19</y>
+            <width>70</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Preview</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="key_2_text_set">
+          <property name="geometry">
+           <rect>
+            <x>390</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set(text)</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_13">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>30</y>
+            <width>21</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>or</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="img_b_2">
+          <property name="geometry">
+           <rect>
+            <x>150</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="key_1_text_2">
+          <property name="geometry">
+           <rect>
+            <x>150</x>
+            <y>30</y>
+            <width>151</width>
+            <height>25</height>
+           </rect>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="key_2">
+          <property name="geometry">
+           <rect>
+            <x>310</x>
+            <y>70</y>
+            <width>80</width>
+            <height>30</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>set</string>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>569</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuProgram">
+    <property name="title">
+     <string>Program</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuProgram"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionRunning_in_Background">
+   <property name="text">
+    <string>Running in Background</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

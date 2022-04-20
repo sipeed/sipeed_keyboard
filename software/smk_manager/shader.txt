@@ -1,0 +1,7 @@
+
+rx=(x-kbw/2)/kbh
+ry=(y-kbh/2)/kbh
+r=math.sin(rx*3.14+time)
+g=math.sin(ry*3.14+time)
+b=math.sin(math.sqrt(rx*rx+ry*ry)*3.14+time)
+rgb=((r+1)/2,(g+1)/2,(b+1)/2)
